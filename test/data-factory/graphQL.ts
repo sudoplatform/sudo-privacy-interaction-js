@@ -1,0 +1,128 @@
+/**
+ * Copyright © 2026 Anonyome Labs, Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {
+  AnalysisResultFieldsFragment,
+  DataHolderFieldsFragment,
+  CapabilitySignals as GraphQLCapabilitySignals,
+  CategorySignals as GraphQLCategorySignals,
+  OrganizationIdentity as GraphQLOrganizationIdentity,
+  PrivacyScore as GraphQLPrivacyScore,
+  PrivacySummary as GraphQLPrivacySummary,
+  RetentionInfo as GraphQLRetentionInfo,
+  RiskIndicators as GraphQLRiskIndicators,
+  VirtualPresence,
+} from '../../src/gen/graphqlTypes'
+
+export class GraphQLDataFactory {
+  private static readonly commonProps = {
+    id: 'testId',
+    owner: 'testOwner',
+    version: 1,
+    createdAtEpochMs: 1.0,
+    updatedAtEpochMs: 2.0,
+  }
+
+  static readonly virtualPresence: VirtualPresence = {
+    ...GraphQLDataFactory.commonProps,
+    providerType: 'EMAIL',
+    identifier: 'test@example.com',
+    state: 'CONNECTED',
+    lastScannedAtEpochMs: 2.0,
+  }
+
+  static readonly dataHolder: DataHolderFieldsFragment = {
+    ...GraphQLDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    domainName: 'example.com',
+    name: 'Foobar Corp',
+    protectionState: 'MONITORED',
+    complianceConcern: false,
+    mostRecentInteractionEpochMs: 3.0,
+  }
+
+  static readonly retentionInfo: GraphQLRetentionInfo = {
+    style: 'INDEFINITE',
+    timeInDays: 30,
+    additionalInfo: 'Some info',
+  }
+
+  static readonly privacyScore: GraphQLPrivacyScore = {
+    score: 67,
+    breakdown: [{ aspect: 'dataCollection', contribution: -10 }],
+  }
+
+  static readonly privacySummary: GraphQLPrivacySummary = {
+    bulletPoints: ['Collects email addresses'],
+    sourceUrl: 'https://example.com/privacy',
+    sourceLastUpdated: '2026-01-01',
+  }
+
+  static readonly categorySignals: GraphQLCategorySignals = {
+    category: 'PII',
+    collected: 'YES',
+    dataLabels: ['email address', 'full name'],
+    sharedWithThirdParties: 'NONE',
+    usedForAdvertising: 'UNKNOWN',
+    retained: 'YES',
+    retention: GraphQLDataFactory.retentionInfo,
+    userCanOptOut: 'YES',
+    requiredForService: 'YES',
+    requiredForLaw: 'NO',
+  }
+
+  static readonly capabilitySignals: GraphQLCapabilitySignals = {
+    supportsAccountCreation: 'YES',
+    supportsAccountDeletion: 'YES',
+    supportsDataDeletionRequests: 'YES',
+    supportsDataExport: 'UNKNOWN',
+    supportsSubscriptions: 'NO',
+    sellsPersonalInformation: 'NO',
+    usesCookiesOrTracking: 'YES',
+  }
+
+  static readonly riskIndicators: GraphQLRiskIndicators = {
+    dataCollectionBreadth: 3,
+    collectsSensitiveDataForNonEssentialPurposes: 'NO',
+    sellsPersonalInformation: 'NO',
+    maxRetentionDays: 90,
+    hasIndefiniteRetention: 'YES',
+    encryptionPractices: 'UNKNOWN',
+    breachRisk: 'UNKNOWN',
+  }
+
+  static readonly organizationIdentity: GraphQLOrganizationIdentity = {
+    brandName: 'Foobar',
+    companyName: 'Foobar Corp',
+    primaryCategory: 'Technology',
+    categories: ['Technology', 'Shopping'],
+  }
+
+  static readonly analysisResult: AnalysisResultFieldsFragment = {
+    ...GraphQLDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: 'COMPLETE',
+    lastAnalyzedAtEpochMs: 4.0,
+    data: {
+      privacyScore: GraphQLDataFactory.privacyScore,
+      privacySummary: GraphQLDataFactory.privacySummary,
+      categories: [GraphQLDataFactory.categorySignals],
+      capabilities: GraphQLDataFactory.capabilitySignals,
+      riskIndicators: GraphQLDataFactory.riskIndicators,
+      organizationIdentity: GraphQLDataFactory.organizationIdentity,
+    },
+  }
+
+  static readonly analysisResultPending: AnalysisResultFieldsFragment = {
+    ...GraphQLDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: 'PENDING',
+    lastAnalyzedAtEpochMs: 4.0,
+    data: undefined,
+  }
+}

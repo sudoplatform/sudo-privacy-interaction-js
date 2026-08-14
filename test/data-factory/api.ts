@@ -1,0 +1,143 @@
+/**
+ * Copyright © 2026 Anonyome Labs, Inc. All rights reserved.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {
+  AnalysisResult,
+  AnalysisResultData,
+  AnalysisResultStatus,
+  CapabilitySignals,
+  CategorySignals,
+  DataCategory,
+  DataHolder,
+  DataHolderProtectionState,
+  OrganizationCategory,
+  OrganizationIdentity,
+  PrivacyScore,
+  PrivacySummary,
+  ProviderType,
+  RetentionInfo,
+  RetentionStyle,
+  RiskIndicators,
+  ShareStyle,
+  SignalValue,
+  VirtualPresence,
+  VirtualPresenceState,
+} from '../../src/public'
+
+export class APIDataFactory {
+  private static readonly commonProps = {
+    id: 'testId',
+    owner: 'testOwner',
+    version: 1,
+    createdAt: new Date(1.0),
+    updatedAt: new Date(2.0),
+  }
+
+  static readonly virtualPresence: VirtualPresence = {
+    ...APIDataFactory.commonProps,
+    providerType: ProviderType.Email,
+    identifier: 'test@example.com',
+    state: VirtualPresenceState.Connected,
+    lastScannedAt: new Date(2.0),
+  }
+
+  static readonly dataHolder: DataHolder = {
+    ...APIDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    domainName: 'example.com',
+    name: 'Foobar Corp',
+    protectionState: DataHolderProtectionState.Monitored,
+    complianceConcern: false,
+    mostRecentInteractionAt: new Date(3.0),
+  }
+
+  static readonly retentionInfo: RetentionInfo = {
+    style: RetentionStyle.Indefinite,
+    timeInDays: 30,
+    additionalInfo: 'Some info',
+  }
+
+  static readonly privacyScore: PrivacyScore = {
+    score: 67,
+    breakdown: [{ aspect: 'dataCollection', contribution: -10 }],
+  }
+
+  static readonly privacySummary: PrivacySummary = {
+    bulletPoints: ['Collects email addresses'],
+    sourceUrl: 'https://example.com/privacy',
+    sourceLastUpdated: '2026-01-01',
+  }
+
+  static readonly categorySignals: CategorySignals = {
+    category: DataCategory.Pii,
+    collected: SignalValue.Yes,
+    dataLabels: ['email address', 'full name'],
+    sharedWithThirdParties: ShareStyle.None,
+    usedForAdvertising: SignalValue.Unknown,
+    retained: SignalValue.Yes,
+    retention: APIDataFactory.retentionInfo,
+    userCanOptOut: SignalValue.Yes,
+    requiredForService: SignalValue.Yes,
+    requiredForLaw: SignalValue.No,
+  }
+
+  static readonly capabilitySignals: CapabilitySignals = {
+    supportsAccountCreation: SignalValue.Yes,
+    supportsAccountDeletion: SignalValue.Yes,
+    supportsDataDeletionRequests: SignalValue.Yes,
+    supportsDataExport: SignalValue.Unknown,
+    supportsSubscriptions: SignalValue.No,
+    sellsPersonalInformation: SignalValue.No,
+    usesCookiesOrTracking: SignalValue.Yes,
+  }
+
+  static readonly riskIndicators: RiskIndicators = {
+    dataCollectionBreadth: 3,
+    collectsSensitiveDataForNonEssentialPurposes: SignalValue.No,
+    sellsPersonalInformation: SignalValue.No,
+    maxRetentionDays: 90,
+    hasIndefiniteRetention: SignalValue.Yes,
+    encryptionPractices: SignalValue.Unknown,
+    breachRisk: SignalValue.Unknown,
+  }
+
+  static readonly organizationIdentity: OrganizationIdentity = {
+    brandName: 'Foobar',
+    companyName: 'Foobar Corp',
+    primaryCategory: OrganizationCategory.Technology,
+    categories: [
+      OrganizationCategory.Technology,
+      OrganizationCategory.Shopping,
+    ],
+  }
+
+  static readonly analysisResultData: AnalysisResultData = {
+    privacyScore: APIDataFactory.privacyScore,
+    privacySummary: APIDataFactory.privacySummary,
+    categories: [APIDataFactory.categorySignals],
+    capabilities: APIDataFactory.capabilitySignals,
+    riskIndicators: APIDataFactory.riskIndicators,
+    organizationIdentity: APIDataFactory.organizationIdentity,
+  }
+
+  static readonly analysisResult: AnalysisResult = {
+    ...APIDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: AnalysisResultStatus.Complete,
+    lastAnalyzedAt: new Date(4.0),
+    data: APIDataFactory.analysisResultData,
+  }
+
+  static readonly analysisResultPending: AnalysisResult = {
+    ...APIDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: AnalysisResultStatus.Pending,
+    lastAnalyzedAt: new Date(4.0),
+    data: undefined,
+  }
+}

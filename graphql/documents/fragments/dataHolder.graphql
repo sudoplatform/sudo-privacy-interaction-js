@@ -1,0 +1,13 @@
+fragment DataHolderFields on DataHolder {
+  id
+  virtualPresenceId
+  domainName
+  name
+  protectionState
+  complianceConcern
+  mostRecentInteractionEpochMs
+  owner
+  version
+  createdAtEpochMs
+  updatedAtEpochMs
+}

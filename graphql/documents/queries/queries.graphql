@@ -1,0 +1,54 @@
+query ListVirtualPresences($input: ListVirtualPresencesInput) {
+  listVirtualPresences(input: $input) {
+    items {
+      ...VirtualPresenceFields
+    }
+    nextToken
+  }
+}
+
+query GetDataHolder($id: ID!) {
+  getDataHolder(id: $id) {
+    ...DataHolderFields
+  }
+}
+
+query ListDataHolders(
+  $virtualPresenceId: ID!
+  $limit: Int
+  $nextToken: String
+) {
+  listDataHolders(
+    virtualPresenceId: $virtualPresenceId
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      ...DataHolderFields
+    }
+    nextToken
+  }
+}
+
+query GetAnalysisResult($id: ID!) {
+  getAnalysisResult(id: $id) {
+    ...AnalysisResultFields
+  }
+}
+
+query ListAnalysisResults(
+  $virtualPresenceId: ID!
+  $limit: Int
+  $nextToken: String
+) {
+  listAnalysisResults(
+    virtualPresenceId: $virtualPresenceId
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      ...AnalysisResultFields
+    }
+    nextToken
+  }
+}

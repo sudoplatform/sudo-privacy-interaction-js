@@ -1,0 +1,65 @@
+fragment AnalysisResultFields on AnalysisResult {
+  id
+  virtualPresenceId
+  dataHolderIdentifier
+  status
+  lastAnalyzedAtEpochMs
+  data {
+    privacyScore {
+      score
+      breakdown {
+        aspect
+        contribution
+      }
+    }
+    privacySummary {
+      bulletPoints
+      sourceUrl
+      sourceLastUpdated
+    }
+    categories {
+      category
+      collected
+      dataLabels
+      sharedWithThirdParties
+      usedForAdvertising
+      retained
+      retention {
+        style
+        timeInDays
+        additionalInfo
+      }
+      userCanOptOut
+      requiredForService
+      requiredForLaw
+    }
+    capabilities {
+      supportsAccountCreation
+      supportsAccountDeletion
+      supportsDataDeletionRequests
+      supportsDataExport
+      supportsSubscriptions
+      sellsPersonalInformation
+      usesCookiesOrTracking
+    }
+    riskIndicators {
+      dataCollectionBreadth
+      collectsSensitiveDataForNonEssentialPurposes
+      sellsPersonalInformation
+      maxRetentionDays
+      hasIndefiniteRetention
+      encryptionPractices
+      breachRisk
+    }
+    organizationIdentity {
+      brandName
+      companyName
+      primaryCategory
+      categories
+    }
+  }
+  owner
+  version
+  createdAtEpochMs
+  updatedAtEpochMs
+}

@@ -1,0 +1,11 @@
+fragment VirtualPresenceFields on VirtualPresence {
+  id
+  providerType
+  identifier
+  state
+  lastScannedAtEpochMs
+  owner
+  version
+  createdAtEpochMs
+  updatedAtEpochMs
+}
