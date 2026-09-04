@@ -36,6 +36,9 @@ export class CapabilitySignalsTransformer {
       usesCookiesOrTracking: this.signalValueTransformer.fromGraphQLToEntity(
         data.usesCookiesOrTracking,
       ),
+      supportsTwoFactorAuth: this.signalValueTransformer.fromGraphQLToEntity(
+        data.supportsTwoFactorAuth,
+      ),
     }
   }
 
@@ -61,6 +64,9 @@ export class CapabilitySignalsTransformer {
       ),
       usesCookiesOrTracking: this.signalValueTransformer.fromEntityToAPI(
         entity.usesCookiesOrTracking,
+      ),
+      supportsTwoFactorAuth: this.signalValueTransformer.fromEntityToAPI(
+        entity.supportsTwoFactorAuth,
       ),
     }
   }

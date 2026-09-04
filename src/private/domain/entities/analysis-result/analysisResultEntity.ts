@@ -62,6 +62,7 @@ export enum AnalysisResultStatusEntity {
  * @property {CapabilitySignalsEntity} capabilities Action-derived capability signals.
  * @property {RiskIndicatorsEntity} riskIndicators Aggregated risk indicators.
  * @property {OrganizationIdentityEntity} organizationIdentity Organization identity (brand, company, business categories).
+ * @property {string[]} attribution Information describing where the analysis result is derived from.
  */
 export interface AnalysisResultDataEntity {
   privacyScore?: PrivacyScoreEntity
@@ -70,6 +71,7 @@ export interface AnalysisResultDataEntity {
   capabilities: CapabilitySignalsEntity
   riskIndicators: RiskIndicatorsEntity
   organizationIdentity?: OrganizationIdentityEntity
+  attribution: string[]
 }
 
 /**
@@ -203,7 +205,7 @@ export interface RetentionInfoEntity {
  * @property {SignalValueEntity} collected Whether this category of data is collected.
  * @property {string[]} dataLabels Descriptive labels for the collected data within this category.
  * @property {ShareStyleEntity} sharedWithThirdParties How this category is shared with third parties.
- * @property {SignalValueEntity} usedForAdvertising Whether this category is used for advertising or monetization.
+ * @property {SignalValueEntity} monetized Whether this category is used for monetization.
  * @property {SignalValueEntity} retained Whether this category is retained.
  * @property {RetentionInfoEntity} retention Retention details when data is retained.
  * @property {SignalValueEntity} userCanOptOut Whether the user can opt out of this category's collection.
@@ -215,7 +217,7 @@ export interface CategorySignalsEntity {
   collected: SignalValueEntity
   dataLabels: string[]
   sharedWithThirdParties: ShareStyleEntity
-  usedForAdvertising: SignalValueEntity
+  monetized: SignalValueEntity
   retained: SignalValueEntity
   retention?: RetentionInfoEntity
   userCanOptOut: SignalValueEntity
@@ -234,6 +236,7 @@ export interface CategorySignalsEntity {
  * @property {SignalValueEntity} supportsSubscriptions Whether the organization supports subscription management.
  * @property {SignalValueEntity} sellsPersonalInformation Whether the organization sells personal information.
  * @property {SignalValueEntity} usesCookiesOrTracking Whether the organization uses cookies or tracking.
+ * @property {SignalValueEntity} supportsTwoFactorAuth Whether the organization supports two-factor auth for logins.
  */
 export interface CapabilitySignalsEntity {
   supportsAccountCreation: SignalValueEntity
@@ -243,6 +246,7 @@ export interface CapabilitySignalsEntity {
   supportsSubscriptions: SignalValueEntity
   sellsPersonalInformation: SignalValueEntity
   usesCookiesOrTracking: SignalValueEntity
+  supportsTwoFactorAuth: SignalValueEntity
 }
 
 /**

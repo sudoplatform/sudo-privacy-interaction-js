@@ -22,7 +22,7 @@ fragment AnalysisResultFields on AnalysisResult {
       collected
       dataLabels
       sharedWithThirdParties
-      usedForAdvertising
+      monetized
       retained
       retention {
         style
@@ -41,6 +41,7 @@ fragment AnalysisResultFields on AnalysisResult {
       supportsSubscriptions
       sellsPersonalInformation
       usesCookiesOrTracking
+      supportsTwoFactorAuth
     }
     riskIndicators {
       dataCollectionBreadth
@@ -57,6 +58,7 @@ fragment AnalysisResultFields on AnalysisResult {
       primaryCategory
       categories
     }
+    attribution
   }
   owner
   version

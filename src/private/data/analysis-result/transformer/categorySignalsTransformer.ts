@@ -28,8 +28,8 @@ export class CategorySignalsTransformer {
       sharedWithThirdParties: this.shareStyleTransformer.fromGraphQLToEntity(
         data.sharedWithThirdParties,
       ),
-      usedForAdvertising: this.signalValueTransformer.fromGraphQLToEntity(
-        data.usedForAdvertising,
+      monetized: this.signalValueTransformer.fromGraphQLToEntity(
+        data.monetized,
       ),
       retained: this.signalValueTransformer.fromGraphQLToEntity(data.retained),
       retention: data.retention
@@ -55,9 +55,7 @@ export class CategorySignalsTransformer {
       sharedWithThirdParties: this.shareStyleTransformer.fromEntityToAPI(
         entity.sharedWithThirdParties,
       ),
-      usedForAdvertising: this.signalValueTransformer.fromEntityToAPI(
-        entity.usedForAdvertising,
-      ),
+      monetized: this.signalValueTransformer.fromEntityToAPI(entity.monetized),
       retained: this.signalValueTransformer.fromEntityToAPI(entity.retained),
       retention: entity.retention
         ? this.retentionInfoTransformer.fromEntityToAPI(entity.retention)

@@ -137,7 +137,7 @@ type CategorySignals {
   # Is this category shared with third parties?
   sharedWithThirdParties: ShareStyle!
   # Is this category used for advertising/monetization?
-  usedForAdvertising: SignalValue!
+  monetized: SignalValue!
   # Is this category retained?
   retained: SignalValue!
   # Retention details when retained is YES.
@@ -159,6 +159,8 @@ type CapabilitySignals {
   supportsSubscriptions: SignalValue!
   sellsPersonalInformation: SignalValue!
   usesCookiesOrTracking: SignalValue!
+  # Does the organization support two-factor auth for logins?
+  supportsTwoFactorAuth: SignalValue!
 }
 
 # Aggregated risk indicators derived from categories and capabilities.
@@ -219,6 +221,8 @@ type AnalysisResultData {
   riskIndicators: RiskIndicators!
   # Organization identity (brand, company, business categories).
   organizationIdentity: OrganizationIdentity
+  # Attribution strings crediting each data source that contributed to this result.
+  attribution: [String!]!
 }
 
 # The protection state of a data holder.

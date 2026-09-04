@@ -56,6 +56,7 @@ export class AnalysisResultDataTransformer {
             primaryCategory: OrganizationCategoryEntity.Other,
             categories: [],
           },
+      attribution: data.attribution,
     }
   }
 
@@ -81,6 +82,7 @@ export class AnalysisResultDataTransformer {
             entity.organizationIdentity,
           )
         : undefined,
+      attribution: entity.attribution,
     }
   }
 }

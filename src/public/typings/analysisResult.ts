@@ -88,6 +88,7 @@ export enum AnalysisResultStatus {
  * @property {CapabilitySignals} capabilities Action-derived capability signals.
  * @property {RiskIndicators} riskIndicators Aggregated risk indicators.
  * @property {OrganizationIdentity} organizationIdentity Organization identity (brand, company, business categories).
+ * @property {string[]} attribution Information describing where the analysis result is derived from.
  */
 export interface AnalysisResultData {
   privacyScore?: PrivacyScore
@@ -96,6 +97,7 @@ export interface AnalysisResultData {
   capabilities: CapabilitySignals
   riskIndicators: RiskIndicators
   organizationIdentity?: OrganizationIdentity
+  attribution: string[]
 }
 
 /**
@@ -229,7 +231,7 @@ export interface RetentionInfo {
  * @property {SignalValue} collected Whether this category of data is collected.
  * @property {string[]} dataLabels Descriptive labels for the collected data within this category.
  * @property {ShareStyle} sharedWithThirdParties How this category is shared with third parties.
- * @property {SignalValue} usedForAdvertising Whether this category is used for advertising or monetization.
+ * @property {SignalValue} monetized Whether this category is used for monetization.
  * @property {SignalValue} retained Whether this category is retained.
  * @property {RetentionInfo} retention Retention details when data is retained.
  * @property {SignalValue} userCanOptOut Whether the user can opt out of this category's collection.
@@ -241,7 +243,7 @@ export interface CategorySignals {
   collected: SignalValue
   dataLabels: string[]
   sharedWithThirdParties: ShareStyle
-  usedForAdvertising: SignalValue
+  monetized: SignalValue
   retained: SignalValue
   retention?: RetentionInfo
   userCanOptOut: SignalValue
@@ -260,6 +262,7 @@ export interface CategorySignals {
  * @property {SignalValue} supportsSubscriptions Whether the organization supports subscription management.
  * @property {SignalValue} sellsPersonalInformation Whether the organization sells personal information.
  * @property {SignalValue} usesCookiesOrTracking Whether the organization uses cookies or tracking.
+ * @property {SignalValue} supportsTwoFactorAuth Whether the organization supports two-factor auth for logins.
  */
 export interface CapabilitySignals {
   supportsAccountCreation: SignalValue
@@ -269,6 +272,7 @@ export interface CapabilitySignals {
   supportsSubscriptions: SignalValue
   sellsPersonalInformation: SignalValue
   usesCookiesOrTracking: SignalValue
+  supportsTwoFactorAuth: SignalValue
 }
 
 /**

@@ -58,6 +58,7 @@ export type AnalysisResultConnection = {
 }
 
 export type AnalysisResultData = {
+  attribution: Array<Scalars['String']['output']>
   capabilities: CapabilitySignals
   categories: Array<CategorySignals>
   organizationIdentity?: Maybe<OrganizationIdentity>
@@ -93,6 +94,7 @@ export type CapabilitySignals = {
   supportsDataDeletionRequests: SignalValue
   supportsDataExport: SignalValue
   supportsSubscriptions: SignalValue
+  supportsTwoFactorAuth: SignalValue
   usesCookiesOrTracking: SignalValue
 }
 
@@ -100,12 +102,12 @@ export type CategorySignals = {
   category: DataCategory
   collected: SignalValue
   dataLabels: Array<Scalars['String']['output']>
+  monetized: SignalValue
   requiredForLaw?: Maybe<SignalValue>
   requiredForService?: Maybe<SignalValue>
   retained: SignalValue
   retention?: Maybe<RetentionInfo>
   sharedWithThirdParties: ShareStyle
-  usedForAdvertising: SignalValue
   userCanOptOut: SignalValue
 }
 
@@ -417,6 +419,7 @@ export type AnalysisResultFieldsFragment = {
   createdAtEpochMs: number
   updatedAtEpochMs: number
   data?: {
+    attribution: Array<string>
     privacyScore?: {
       score: number
       breakdown: Array<{ aspect: string; contribution: number }>
@@ -431,7 +434,7 @@ export type AnalysisResultFieldsFragment = {
       collected: SignalValue
       dataLabels: Array<string>
       sharedWithThirdParties: ShareStyle
-      usedForAdvertising: SignalValue
+      monetized: SignalValue
       retained: SignalValue
       userCanOptOut: SignalValue
       requiredForService?: SignalValue | null
@@ -450,6 +453,7 @@ export type AnalysisResultFieldsFragment = {
       supportsSubscriptions: SignalValue
       sellsPersonalInformation: SignalValue
       usesCookiesOrTracking: SignalValue
+      supportsTwoFactorAuth: SignalValue
     }
     riskIndicators: {
       dataCollectionBreadth: number
@@ -632,6 +636,7 @@ export type GetAnalysisResultQuery = {
     createdAtEpochMs: number
     updatedAtEpochMs: number
     data?: {
+      attribution: Array<string>
       privacyScore?: {
         score: number
         breakdown: Array<{ aspect: string; contribution: number }>
@@ -646,7 +651,7 @@ export type GetAnalysisResultQuery = {
         collected: SignalValue
         dataLabels: Array<string>
         sharedWithThirdParties: ShareStyle
-        usedForAdvertising: SignalValue
+        monetized: SignalValue
         retained: SignalValue
         userCanOptOut: SignalValue
         requiredForService?: SignalValue | null
@@ -665,6 +670,7 @@ export type GetAnalysisResultQuery = {
         supportsSubscriptions: SignalValue
         sellsPersonalInformation: SignalValue
         usesCookiesOrTracking: SignalValue
+        supportsTwoFactorAuth: SignalValue
       }
       riskIndicators: {
         dataCollectionBreadth: number
@@ -705,6 +711,7 @@ export type ListAnalysisResultsQuery = {
       createdAtEpochMs: number
       updatedAtEpochMs: number
       data?: {
+        attribution: Array<string>
         privacyScore?: {
           score: number
           breakdown: Array<{ aspect: string; contribution: number }>
@@ -719,7 +726,7 @@ export type ListAnalysisResultsQuery = {
           collected: SignalValue
           dataLabels: Array<string>
           sharedWithThirdParties: ShareStyle
-          usedForAdvertising: SignalValue
+          monetized: SignalValue
           retained: SignalValue
           userCanOptOut: SignalValue
           requiredForService?: SignalValue | null
@@ -738,6 +745,7 @@ export type ListAnalysisResultsQuery = {
           supportsSubscriptions: SignalValue
           sellsPersonalInformation: SignalValue
           usesCookiesOrTracking: SignalValue
+          supportsTwoFactorAuth: SignalValue
         }
         riskIndicators: {
           dataCollectionBreadth: number
@@ -920,7 +928,7 @@ export const AnalysisResultFieldsFragmentDoc = {
                       },
                       {
                         kind: 'Field',
-                        name: { kind: 'Name', value: 'usedForAdvertising' },
+                        name: { kind: 'Name', value: 'monetized' },
                       },
                       {
                         kind: 'Field',
@@ -1008,6 +1016,10 @@ export const AnalysisResultFieldsFragmentDoc = {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'usesCookiesOrTracking' },
                       },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                      },
                     ],
                   },
                 },
@@ -1079,6 +1091,7 @@ export const AnalysisResultFieldsFragmentDoc = {
                     ],
                   },
                 },
+                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
@@ -1841,7 +1854,7 @@ export const GetAnalysisResultDocument = {
                       },
                       {
                         kind: 'Field',
-                        name: { kind: 'Name', value: 'usedForAdvertising' },
+                        name: { kind: 'Name', value: 'monetized' },
                       },
                       {
                         kind: 'Field',
@@ -1929,6 +1942,10 @@ export const GetAnalysisResultDocument = {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'usesCookiesOrTracking' },
                       },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                      },
                     ],
                   },
                 },
@@ -2000,6 +2017,7 @@ export const GetAnalysisResultDocument = {
                     ],
                   },
                 },
+                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
@@ -2205,7 +2223,7 @@ export const ListAnalysisResultsDocument = {
                       },
                       {
                         kind: 'Field',
-                        name: { kind: 'Name', value: 'usedForAdvertising' },
+                        name: { kind: 'Name', value: 'monetized' },
                       },
                       {
                         kind: 'Field',
@@ -2293,6 +2311,10 @@ export const ListAnalysisResultsDocument = {
                         kind: 'Field',
                         name: { kind: 'Name', value: 'usesCookiesOrTracking' },
                       },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                      },
                     ],
                   },
                 },
@@ -2364,6 +2386,7 @@ export const ListAnalysisResultsDocument = {
                     ],
                   },
                 },
+                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
