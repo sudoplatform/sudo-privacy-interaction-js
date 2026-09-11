@@ -7,6 +7,22 @@
 import { Pagination } from './common'
 
 /**
+ * Properties required to connect a virtual presence with an auth code.
+ *
+ * @interface ConnectVirtualPresenceWithAuthCodeInput
+ * @property {string} authCode An authorization code obtained from the OAuth flow.
+ * @property {string} redirectUri The redirect URI that was used to obtain the
+ *  authorization code.
+ * @property {RelationshipProvider} relationshipProvider The relationship provider
+ *  to associate with the connection.
+ */
+export interface ConnectVirtualPresenceWithAuthCodeInput {
+  authCode: string
+  redirectUri?: string
+  relationshipProvider?: RelationshipProvider
+}
+
+/**
  * Properties required to connect a virtual presence with a refresh token.
  *
  * @interface ConnectVirtualPresenceWithRefreshTokenInput
@@ -14,12 +30,28 @@ import { Pagination } from './common'
  * @property {string} providerIdentity The identity associated with the provider.
  * @property {string[]} scopes Optional OAuth scopes associated with the token.
  * @property {number} expiresInEpochMs Optional expiration time in milliseconds since epoch.
+ * @property {RelationshipProvider} relationshipProvider The relationship provider
+ *  to associate with the connection.
  */
 export interface ConnectVirtualPresenceWithRefreshTokenInput {
   refreshToken: string
   providerIdentity: string
   scopes?: string[]
   expiresInEpochMs?: number
+  relationshipProvider?: RelationshipProvider
+}
+
+/**
+ * Enumeration of the relationship providers that back a virtual presence connection.
+ *
+ * @property GMAIL_PROVIDER The Gmail relationship provider.
+ * @property TEST_PROVIDER The test relationship provider.
+ *
+ * @enum
+ */
+export enum RelationshipProvider {
+  GmailProvider = 'GMAIL_PROVIDER',
+  TestProvider = 'TEST_PROVIDER',
 }
 
 /**

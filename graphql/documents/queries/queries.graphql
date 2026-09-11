@@ -1,3 +1,9 @@
+query GetProviderConfiguration {
+  getProviderConfiguration {
+    data
+  }
+}
+
 query ListVirtualPresences($input: ListVirtualPresencesInput) {
   listVirtualPresences(input: $input) {
     items {

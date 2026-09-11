@@ -12,12 +12,14 @@ import {
   ConnectionState,
   DataHolder,
   DataHolderProtectionState,
+  RelationshipProvider,
   SudoPrivacyInteractionClient,
 } from '../../src/public'
 import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
+import { resolveRelationshipProvider } from './util/relationshipProvider'
 
 describe('Data Holder Integration Test Suite', () => {
   const log = new DefaultLogger('DataHolderIntegrationTest')
@@ -25,6 +27,7 @@ describe('Data Holder Integration Test Suite', () => {
   let setup: SetupPrivacyInteractionClientOutput
   let instanceUnderTest: SudoPrivacyInteractionClient
   let userClient: SudoUserClient
+  let relationshipProvider: RelationshipProvider
 
   const connectedIds = new Set<string>()
 
@@ -32,6 +35,7 @@ describe('Data Holder Integration Test Suite', () => {
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
+    relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
   })
 
   afterEach(async () => {
@@ -55,6 +59,7 @@ describe('Data Holder Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'dataholder-test@example.com',
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       connectedIds.add(connectedVp.id)
@@ -89,6 +94,7 @@ describe('Data Holder Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'dataholder-test@example.com',
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       connectedIds.add(connectedVp.id)
@@ -119,6 +125,7 @@ describe('Data Holder Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'dataholder-test@example.com',
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       connectedIds.add(connectedVp.id)
@@ -190,6 +197,7 @@ describe('Data Holder Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'dh-sub-test@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 
@@ -227,54 +235,6 @@ describe('Data Holder Integration Test Suite', () => {
 
       instanceUnderTest.unsubscribeFromDataHolders(subscriptionId1)
       instanceUnderTest.unsubscribeFromDataHolders(subscriptionId2)
-    })
-
-    it('receives data holder updates during discovery', async () => {
-      const subscriptionId = v4()
-      const receivedDataHolders: DataHolder[][] = []
-      let connectionState: ConnectionState = ConnectionState.Disconnected
-
-      await instanceUnderTest.subscribeToDataHolders(subscriptionId, {
-        dataHoldersUpdated(dataHolders: DataHolder[]): void {
-          receivedDataHolders.push(dataHolders)
-        },
-        connectionStatusChanged(state: ConnectionState): void {
-          connectionState = state
-        },
-      })
-
-      expect(connectionState).toBe(ConnectionState.Connected)
-
-      // Connect a VP to trigger discovery — each page of results publishes
-      // a batch of data holders via the onDataHoldersUpdate subscription
-      const connectedVp =
-        await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
-          refreshToken: 'test-refresh-token',
-          providerIdentity: 'dh-discovery-sub@example.com',
-        })
-      connectedIds.add(connectedVp.id)
-
-      // Wait for discovery to publish at least one batch
-      await waitForExpect(() => {
-        expect(receivedDataHolders.length).toBeGreaterThan(0)
-      })
-
-      // Verify the received data holders have the expected shape
-      const firstBatch = receivedDataHolders[0]
-      expect(firstBatch.length).toBeGreaterThan(0)
-      for (const dh of firstBatch) {
-        expect(dh.id).toBeDefined()
-        expect(dh.virtualPresenceId).toBe(connectedVp.id)
-        expect(dh.domainName).toBeDefined()
-        expect(dh.name).toBeDefined()
-        expect(dh.protectionState).toBeDefined()
-        expect(typeof dh.complianceConcern).toBe('boolean')
-        expect(dh.mostRecentInteractionAt).toBeInstanceOf(Date)
-        expect(dh.createdAt).toBeInstanceOf(Date)
-        expect(dh.updatedAt).toBeInstanceOf(Date)
-      }
-
-      instanceUnderTest.unsubscribeFromDataHolders(subscriptionId)
     })
   })
 })

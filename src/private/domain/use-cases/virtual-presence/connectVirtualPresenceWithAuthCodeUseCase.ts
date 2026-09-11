@@ -5,8 +5,20 @@
  */
 
 import { DefaultLogger, Logger } from '@sudoplatform/sudo-common'
+import { RelationshipProviderEntity } from '../../entities/inputs/relationshipProviderEntity'
 import { VirtualPresenceEntity } from '../../entities/virtual-presence/virtualPresenceEntity'
 import { VirtualPresenceService } from '../../entities/virtual-presence/virtualPresenceService'
+
+/**
+ * Input for `ConnectVirtualPresenceWithAuthCodeUseCase`.
+ *
+ * @interface ConnectVirtualPresenceWithAuthCodeUseCaseInput
+ */
+interface ConnectVirtualPresenceWithAuthCodeUseCaseInput {
+  authCode: string
+  redirectUri?: string
+  relationshipProvider?: RelationshipProviderEntity
+}
 
 /**
  * Application business logic for connecting a virtual presence using an authorization code.
@@ -20,10 +32,16 @@ export class ConnectVirtualPresenceWithAuthCodeUseCase {
     this.log = new DefaultLogger(this.constructor.name)
   }
 
-  async execute(authCode: string): Promise<VirtualPresenceEntity> {
+  async execute(
+    input: ConnectVirtualPresenceWithAuthCodeUseCaseInput,
+  ): Promise<VirtualPresenceEntity> {
     this.log.debug(this.constructor.name)
     return await this.virtualPresenceService.connect({
-      authCode,
+      authCode: {
+        authCode: input.authCode,
+        redirectUri: input.redirectUri,
+      },
+      relationshipProvider: input.relationshipProvider,
     })
   }
 }

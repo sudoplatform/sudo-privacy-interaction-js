@@ -16,6 +16,7 @@ import {
 import { VirtualPresenceService } from '../../../../../../src/private/domain/entities/virtual-presence/virtualPresenceService'
 import { ConnectVirtualPresenceWithRefreshTokenUseCase } from '../../../../../../src/private/domain/use-cases/virtual-presence/connectVirtualPresenceWithRefreshTokenUseCase'
 import { EntityDataFactory } from '../../../../../data-factory/entity'
+import { RelationshipProviderEntity } from '../../../../../../src/private/domain/entities/inputs/relationshipProviderEntity'
 
 describe('ConnectVirtualPresenceWithRefreshTokenUseCase Test Suite', () => {
   const mockVirtualPresenceService = mock<VirtualPresenceService>()
@@ -48,7 +49,33 @@ describe('ConnectVirtualPresenceWithRefreshTokenUseCase Test Suite', () => {
       expect(result).toStrictEqual(EntityDataFactory.virtualPresence)
       const [inputArgs] = capture(mockVirtualPresenceService.connect).first()
       expect(inputArgs).toStrictEqual<typeof inputArgs>({
-        refreshToken: refreshToken,
+        refreshToken,
+        relationshipProvider: undefined,
+      })
+      verify(mockVirtualPresenceService.connect(anything())).once()
+    })
+
+    it('connects a virtual presence with a relationship provider', async () => {
+      when(mockVirtualPresenceService.connect(anything())).thenResolve(
+        EntityDataFactory.virtualPresence,
+      )
+
+      const result = await instanceUnderTest.execute({
+        refreshToken: 'test-refresh-token',
+        providerIdentity: 'test@example.com',
+        relationshipProvider: RelationshipProviderEntity.GmailProvider,
+      })
+
+      expect(result).toStrictEqual(EntityDataFactory.virtualPresence)
+      const [inputArgs] = capture(mockVirtualPresenceService.connect).first()
+      expect(inputArgs).toStrictEqual<typeof inputArgs>({
+        refreshToken: {
+          refreshToken: 'test-refresh-token',
+          providerIdentity: 'test@example.com',
+          scopes: undefined,
+          expiresInEpochMs: undefined,
+        },
+        relationshipProvider: RelationshipProviderEntity.GmailProvider,
       })
       verify(mockVirtualPresenceService.connect(anything())).once()
     })

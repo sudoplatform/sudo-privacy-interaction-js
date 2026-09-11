@@ -7,6 +7,7 @@
 import { ListOutput } from '@sudoplatform/sudo-common'
 import { SudoUserClient } from '@sudoplatform/sudo-user'
 import {
+  ConnectVirtualPresenceWithAuthCodeInput,
   ConnectVirtualPresenceWithRefreshTokenInput,
   ListAnalysisResultsInput,
   ListDataHoldersInput,
@@ -18,18 +19,29 @@ import {
   AnalysisResultSubscriber,
   DataHolder,
   DataHolderSubscriber,
+  ProviderConfiguration,
   VirtualPresence,
   VirtualPresenceSubscriber,
 } from './typings'
 
 export interface SudoPrivacyInteractionClient {
   /**
+   * Retrieve the provider configurations required by consumers to support
+   * the provider OAuth flow.
+   *
+   * @returns {ProviderConfiguration[]} The provider configurations.
+   */
+  getProviderConfiguration(): Promise<ProviderConfiguration[]>
+
+  /**
    * Connect a virtual presence using an authorization code obtained from an OAuth flow.
    *
-   * @param {string} authCode An authorization code obtained from the OAuth flow.
+   * @param {ConnectVirtualPresenceWithAuthCodeInput} input The authorization code input.
    * @returns {VirtualPresence} The connected virtual presence.
    */
-  connectVirtualPresenceWithAuthCode(authCode: string): Promise<VirtualPresence>
+  connectVirtualPresenceWithAuthCode(
+    input: ConnectVirtualPresenceWithAuthCodeInput,
+  ): Promise<VirtualPresence>
 
   /**
    * Connect a virtual presence using a pre-obtained refresh token credential.

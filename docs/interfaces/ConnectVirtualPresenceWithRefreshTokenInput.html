@@ -14,9 +14,9 @@
 <div class="tsd-comment tsd-typography"><p>Properties required to connect a virtual presence with a refresh token.</p>
 <p>ConnectVirtualPresenceWithRefreshTokenInput</p>
 </div></section>
-<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ConnectVirtualPresenceWithRefreshTokenInput</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#expiresinepochms">expiresInEpochMs</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#provideridentity">providerIdentity</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#refreshtoken">refreshToken</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#scopes">scopes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
+<div class="tsd-signature"><span class="tsd-signature-keyword">interface</span> <span class="tsd-kind-interface">ConnectVirtualPresenceWithRefreshTokenInput</span> <span class="tsd-signature-symbol">{</span><br/>    <a class="tsd-kind-property" href="#expiresinepochms">expiresInEpochMs</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#provideridentity">providerIdentity</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#refreshtoken">refreshToken</a><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#relationshipprovider">relationshipProvider</a><span class="tsd-signature-symbol">?:</span> <a href="../enums/RelationshipProvider.html" class="tsd-signature-type tsd-kind-enum">RelationshipProvider</a><span class="tsd-signature-symbol">;</span><br/>    <a class="tsd-kind-property" href="#scopes">scopes</a><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">;</span><br/><span class="tsd-signature-symbol">}</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/public/inputs/virtualPresence.ts:18</li></ul></aside>
+<li>Defined in src/public/inputs/virtualPresence.ts:36</li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-accordion" open><summary class="tsd-accordion-summary tsd-index-summary"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -27,6 +27,7 @@
 <div class="tsd-index-list"><a href="#expiresinepochms" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>expires<wbr/>In<wbr/>Epoch<wbr/>Ms?</span></a>
 <a href="#provideridentity" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>provider<wbr/>Identity</span></a>
 <a href="#refreshtoken" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>refresh<wbr/>Token</span></a>
+<a href="#relationshipprovider" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>relationship<wbr/>Provider?</span></a>
 <a href="#scopes" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>scopes?</span></a>
 </div></section></div></details></section></section>
 <details class="tsd-panel-group tsd-member-group tsd-accordion" open><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>
@@ -38,28 +39,36 @@
 <div class="tsd-comment tsd-typography"><p>Optional expiration time in milliseconds since epoch.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/public/inputs/virtualPresence.ts:22</li></ul></aside></section>
+<li>Defined in src/public/inputs/virtualPresence.ts:40</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="provideridentity"><span>provider<wbr/>Identity</span><a href="#provideridentity" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">providerIdentity</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The identity associated with the provider.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/public/inputs/virtualPresence.ts:20</li></ul></aside></section>
+<li>Defined in src/public/inputs/virtualPresence.ts:38</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="refreshtoken"><span>refresh<wbr/>Token</span><a href="#refreshtoken" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">refreshToken</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span></div>
 <div class="tsd-comment tsd-typography"><p>The refresh token value.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/public/inputs/virtualPresence.ts:19</li></ul></aside></section>
+<li>Defined in src/public/inputs/virtualPresence.ts:37</li></ul></aside></section>
+<section class="tsd-panel tsd-member">
+<h3 class="tsd-anchor-link" id="relationshipprovider"><code class="tsd-tag">Optional</code><span>relationship<wbr/>Provider</span><a href="#relationshipprovider" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
+<div class="tsd-signature"><span class="tsd-kind-property">relationshipProvider</span><span class="tsd-signature-symbol">?:</span> <a href="../enums/RelationshipProvider.html" class="tsd-signature-type tsd-kind-enum">RelationshipProvider</a></div>
+<div class="tsd-comment tsd-typography"><p>The relationship provider
+to associate with the connection.</p>
+</div><aside class="tsd-sources">
+<ul>
+<li>Defined in src/public/inputs/virtualPresence.ts:41</li></ul></aside></section>
 <section class="tsd-panel tsd-member">
 <h3 class="tsd-anchor-link" id="scopes"><code class="tsd-tag">Optional</code><span>scopes</span><a href="#scopes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="../assets/icons.svg#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">scopes</span><span class="tsd-signature-symbol">?:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">[]</span></div>
 <div class="tsd-comment tsd-typography"><p>Optional OAuth scopes associated with the token.</p>
 </div><aside class="tsd-sources">
 <ul>
-<li>Defined in src/public/inputs/virtualPresence.ts:21</li></ul></aside></section></section></details></div>
+<li>Defined in src/public/inputs/virtualPresence.ts:39</li></ul></aside></section></section></details></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -76,7 +85,7 @@
 <h3>On This Page</h3></summary>
 <div class="tsd-accordion-details">
 <details open class="tsd-accordion tsd-page-navigation-section"><summary class="tsd-accordion-summary" data-key="section-Properties"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><use href="../assets/icons.svg#icon-chevronDown"></use></svg>Properties</summary>
-<div><a href="#expiresinepochms"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>expires<wbr/>In<wbr/>Epoch<wbr/>Ms</span></a><a href="#provideridentity"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>provider<wbr/>Identity</span></a><a href="#refreshtoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>refresh<wbr/>Token</span></a><a href="#scopes"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>scopes</span></a></div></details></div></details></div>
+<div><a href="#expiresinepochms"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>expires<wbr/>In<wbr/>Epoch<wbr/>Ms</span></a><a href="#provideridentity"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>provider<wbr/>Identity</span></a><a href="#refreshtoken"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>refresh<wbr/>Token</span></a><a href="#relationshipprovider"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>relationship<wbr/>Provider</span></a><a href="#scopes"><svg class="tsd-kind-icon" viewBox="0 0 24 24" aria-label="Property"><use href="../assets/icons.svg#icon-1024"></use></svg><span>scopes</span></a></div></details></div></details></div>
 <div class="site-menu">
 <nav class="tsd-navigation"><a href="../modules.html">@sudoplatform/sudo-privacy-interaction</a>
 <ul class="tsd-small-nested-navigation" id="tsd-nav-container">

@@ -12,12 +12,16 @@ import { ApiClient } from '../private/data/common/apiClient'
 import { PrivateSudoPrivacyInteractionClientOptions } from '../private/data/common/privateSudoPrivacyInteractionClientOptions'
 import { DefaultDataHolderService } from '../private/data/data-holder/defaultDataHolderService'
 import { DataHolderTransformer } from '../private/data/data-holder/transformer/dataHolderTransformer'
+import { DefaultProviderConfigurationService } from '../private/data/provider-configuration/defaultProviderConfigurationService'
+import { ProviderConfigurationTransformer } from '../private/data/provider-configuration/transformer/providerConfigurationTransformer'
 import { DefaultVirtualPresenceService } from '../private/data/virtual-presence/defaultVirtualPresenceService'
+import { RelationshipProviderTransformer } from '../private/data/virtual-presence/transformer/relationshipProviderTransformer'
 import { VirtualPresenceTransformer } from '../private/data/virtual-presence/transformer/virtualPresenceTransformer'
 import { GetAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
 import { ListAnalysisResultsUseCase } from '../private/domain/use-cases/analysis-result/listAnalysisResultsUseCase'
 import { SubscribeToAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/subscribeToAnalysisResultUseCase'
 import { UnsubscribeFromAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/unsubscribeFromAnalysisResultUseCase'
+import { GetProviderConfigurationUseCase } from '../private/domain/use-cases/configuration/getProviderConfigurationUseCase'
 import { GetDataHolderUseCase } from '../private/domain/use-cases/data-holder/getDataHolderUseCase'
 import { ListDataHoldersUseCase } from '../private/domain/use-cases/data-holder/listDataHoldersUseCase'
 import { SubscribeToDataHoldersUseCase } from '../private/domain/use-cases/data-holder/subscribeToDataHoldersUseCase'
@@ -30,6 +34,7 @@ import { RescanVirtualPresenceUseCase } from '../private/domain/use-cases/virtua
 import { SubscribeToVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/subscribeToVirtualPresenceUseCase'
 import { UnsubscribeFromVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/unsubscribeFromVirtualPresenceUseCase'
 import {
+  ConnectVirtualPresenceWithAuthCodeInput,
   ConnectVirtualPresenceWithRefreshTokenInput,
   ListAnalysisResultsInput,
   ListDataHoldersInput,
@@ -45,6 +50,7 @@ import {
   AnalysisResultSubscriber,
   DataHolder,
   DataHolderSubscriber,
+  ProviderConfiguration,
   VirtualPresence,
   VirtualPresenceSubscriber,
 } from './typings'
@@ -52,10 +58,13 @@ import {
 export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteractionClient {
   private readonly apiClient: ApiClient
   private readonly userClient: SudoUserClient
+  private readonly providerConfigurationService: DefaultProviderConfigurationService
   private readonly virtualPresenceService: DefaultVirtualPresenceService
   private readonly dataHolderService: DefaultDataHolderService
   private readonly analysisResultService: DefaultAnalysisResultService
+  private readonly providerConfigurationTransformer: ProviderConfigurationTransformer
   private readonly virtualPresenceTransformer: VirtualPresenceTransformer
+  private readonly relationshipProviderTransformer: RelationshipProviderTransformer
   private readonly dataHolderTransformer: DataHolderTransformer
   private readonly analysisResultTransformer: AnalysisResultTransformer
   private readonly log: Logger
@@ -68,6 +77,9 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     this.apiClient = privateOptions.apiClient ?? new ApiClient()
     this.userClient = opts.sudoUserClient
 
+    this.providerConfigurationService = new DefaultProviderConfigurationService(
+      this.apiClient,
+    )
     this.virtualPresenceService = new DefaultVirtualPresenceService(
       this.apiClient,
     )
@@ -76,19 +88,41 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       this.apiClient,
     )
 
+    this.providerConfigurationTransformer =
+      new ProviderConfigurationTransformer()
     this.virtualPresenceTransformer = new VirtualPresenceTransformer()
+    this.relationshipProviderTransformer = new RelationshipProviderTransformer()
     this.dataHolderTransformer = new DataHolderTransformer()
     this.analysisResultTransformer = new AnalysisResultTransformer()
   }
 
+  public async getProviderConfiguration(): Promise<ProviderConfiguration[]> {
+    this.log.debug(this.getProviderConfiguration.name)
+    const useCase = new GetProviderConfigurationUseCase(
+      this.providerConfigurationService,
+    )
+    const result = await useCase.execute()
+    return result.map((entity) =>
+      this.providerConfigurationTransformer.fromEntityToAPI(entity),
+    )
+  }
+
   public async connectVirtualPresenceWithAuthCode(
-    authCode: string,
+    input: ConnectVirtualPresenceWithAuthCodeInput,
   ): Promise<VirtualPresence> {
     this.log.debug(this.connectVirtualPresenceWithAuthCode.name)
     const useCase = new ConnectVirtualPresenceWithAuthCodeUseCase(
       this.virtualPresenceService,
     )
-    const result = await useCase.execute(authCode)
+    const result = await useCase.execute({
+      authCode: input.authCode,
+      redirectUri: input.redirectUri,
+      relationshipProvider: input.relationshipProvider
+        ? this.relationshipProviderTransformer.fromAPIToEntity(
+            input.relationshipProvider,
+          )
+        : undefined,
+    })
     return this.virtualPresenceTransformer.fromEntityToAPI(result)
   }
 
@@ -99,7 +133,17 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     const useCase = new ConnectVirtualPresenceWithRefreshTokenUseCase(
       this.virtualPresenceService,
     )
-    const result = await useCase.execute(input)
+    const result = await useCase.execute({
+      refreshToken: input.refreshToken,
+      providerIdentity: input.providerIdentity,
+      scopes: input.scopes,
+      expiresInEpochMs: input.expiresInEpochMs,
+      relationshipProvider: input.relationshipProvider
+        ? this.relationshipProviderTransformer.fromAPIToEntity(
+            input.relationshipProvider,
+          )
+        : undefined,
+    })
     return this.virtualPresenceTransformer.fromEntityToAPI(result)
   }
 

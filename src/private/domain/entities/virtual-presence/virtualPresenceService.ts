@@ -5,8 +5,21 @@
  */
 
 import { VirtualPresenceSubscriber } from '../../../../public/typings/subscription'
+import { RelationshipProviderEntity } from '../inputs/relationshipProviderEntity'
 import { ScanOptionsEntity } from '../inputs/scanOptionsEntity'
 import { VirtualPresenceEntity } from './virtualPresenceEntity'
+
+/**
+ * Auth code input for connecting a virtual presence.
+ *
+ * @interface AuthCodeInput
+ * @property {string} authCode The auth code value.
+ * @property {string} redirectUri The optional redirect URI value.
+ */
+export interface AuthCodeInput {
+  authCode: string
+  redirectUri?: string
+}
 
 /**
  * Refresh token credential input for connecting a virtual presence.
@@ -28,12 +41,15 @@ export interface RefreshTokenInput {
  * Input for `VirtualPresenceService.connect` method.
  *
  * @interface ConnectVirtualPresenceInput
- * @property {string} authCode An authorization code obtained from the OAuth flow.
+ * @property {AuthCodeInput} authCode An authorization code obtained from the OAuth flow.
  * @property {RefreshTokenInput} refreshToken A pre-obtained refresh token credential.
+ * @property {RelationshipProviderEntity} relationshipProvider The relationship provider
+ *  to associate with the connection.
  */
 export interface ConnectVirtualPresenceInput {
-  authCode?: string
+  authCode?: AuthCodeInput
   refreshToken?: RefreshTokenInput
+  relationshipProvider?: RelationshipProviderEntity
 }
 
 /**

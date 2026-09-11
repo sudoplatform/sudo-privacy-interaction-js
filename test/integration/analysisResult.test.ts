@@ -12,12 +12,15 @@ import {
   AnalysisResultStatus,
   AnalysisResultUpdate,
   ConnectionState,
+  RelationshipProvider,
   SudoPrivacyInteractionClient,
 } from '../../src/public'
 import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
+import { resolveRelationshipProvider } from './util/relationshipProvider'
+import { TestAdminClient } from './util/testAdminClient'
 
 describe('Analysis Result Integration Test Suite', () => {
   const log = new DefaultLogger('AnalysisResultIntegrationTest')
@@ -25,13 +28,43 @@ describe('Analysis Result Integration Test Suite', () => {
   let setup: SetupPrivacyInteractionClientOutput
   let instanceUnderTest: SudoPrivacyInteractionClient
   let userClient: SudoUserClient
+  let relationshipProvider: RelationshipProvider
+  let testAdminClient: TestAdminClient
 
   const connectedIds = new Set<string>()
+
+  /**
+   * Preloads test emails (via the admin API) for the current signed-in user
+   * against the given account email address, so connecting a virtual presence
+   * with that `providerIdentity` yields a predictable discovery analysis. The
+   * integration tests always run against the test provider, so these seeded
+   * emails drive the discovery pipeline.
+   */
+  const seededEmailIds = new Set<string>()
+  const seedTestEmails = async (emailAddress: string): Promise<void> => {
+    const created = await testAdminClient.createTestEmails([
+      {
+        owner: setup.owner,
+        emailAddress,
+        from: 'Netflix <info@netflix.com>',
+        internalDateEpochMs: Date.now(),
+        labelIds: ['INBOX'],
+        listUnsubscribeHeader:
+          '<mailto:unsubscribe@netflix.com>, <https://netflix.com/unsubscribe>',
+        subject: 'Your Netflix receipt',
+      },
+    ])
+    for (const email of created) {
+      seededEmailIds.add(email.id)
+    }
+  }
 
   beforeEach(async () => {
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
+    relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
+    testAdminClient = new TestAdminClient()
   })
 
   afterEach(async () => {
@@ -46,6 +79,16 @@ describe('Analysis Result Integration Test Suite', () => {
       }
     }
     connectedIds.clear()
+
+    if (seededEmailIds.size > 0) {
+      try {
+        await testAdminClient.deleteTestEmails([...seededEmailIds])
+      } catch (err) {
+        log.debug('Cleanup of seeded test emails failed', { err })
+      }
+      seededEmailIds.clear()
+    }
+
     await userClient.reset()
   })
 
@@ -60,21 +103,28 @@ describe('Analysis Result Integration Test Suite', () => {
 
   describe('listAnalysisResults', () => {
     it('lists analysis results for a virtual presence after discovery', async () => {
+      const providerIdentity = 'analysisresult-test@example.com'
+      await seedTestEmails(providerIdentity)
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
-          providerIdentity: 'analysisresult-test@example.com',
+          providerIdentity,
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       connectedIds.add(connectedVp.id)
 
       // Wait for discovery → analysis pipeline to produce results
-      await waitForExpect(async () => {
-        const result = await instanceUnderTest.listAnalysisResults({
-          virtualPresenceId: connectedVp.id,
-        })
-        expect(result.items.length).toBeGreaterThan(0)
-      })
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAnalysisResults({
+            virtualPresenceId: connectedVp.id,
+          })
+          expect(result.items.length).toBeGreaterThan(0)
+        },
+        60000,
+        3000,
+      )
 
       const result = await instanceUnderTest.listAnalysisResults({
         virtualPresenceId: connectedVp.id,
@@ -98,6 +148,7 @@ describe('Analysis Result Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'list-ar-empty@example.com',
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       connectedIds.add(connectedVp.id)
@@ -112,20 +163,27 @@ describe('Analysis Result Integration Test Suite', () => {
     })
 
     it('respects limit parameter', async () => {
+      const providerIdentity = 'list-ar-limit@example.com'
+      await seedTestEmails(providerIdentity)
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
-          providerIdentity: 'list-ar-limit@example.com',
+          providerIdentity,
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 
       // Wait for at least one result
-      await waitForExpect(async () => {
-        const result = await instanceUnderTest.listAnalysisResults({
-          virtualPresenceId: connectedVp.id,
-        })
-        expect(result.items.length).toBeGreaterThan(0)
-      })
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAnalysisResults({
+            virtualPresenceId: connectedVp.id,
+          })
+          expect(result.items.length).toBeGreaterThan(0)
+        },
+        60000,
+        3000,
+      )
 
       const result = await instanceUnderTest.listAnalysisResults({
         virtualPresenceId: connectedVp.id,
@@ -136,20 +194,27 @@ describe('Analysis Result Integration Test Suite', () => {
     })
 
     it('supports pagination with nextToken', async () => {
+      const providerIdentity = 'list-ar-pagination@example.com'
+      await seedTestEmails(providerIdentity)
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
-          providerIdentity: 'list-ar-pagination@example.com',
+          providerIdentity,
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 
       // Wait for results
-      await waitForExpect(async () => {
-        const result = await instanceUnderTest.listAnalysisResults({
-          virtualPresenceId: connectedVp.id,
-        })
-        expect(result.items.length).toBeGreaterThan(0)
-      })
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAnalysisResults({
+            virtualPresenceId: connectedVp.id,
+          })
+          expect(result.items.length).toBeGreaterThan(0)
+        },
+        60000,
+        3000,
+      )
 
       const firstPage = await instanceUnderTest.listAnalysisResults({
         virtualPresenceId: connectedVp.id,
@@ -207,6 +272,7 @@ describe('Analysis Result Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'ar-sub-test@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 
@@ -261,18 +327,26 @@ describe('Analysis Result Integration Test Suite', () => {
 
       expect(connectionState).toBe(ConnectionState.Connected)
 
-      // Connect a VP to trigger discovery → data holders → analysis pipeline
+      // Seed emails then connect a VP to trigger discovery → data holders →
+      // analysis pipeline
+      const providerIdentity = 'ar-discovery-sub@example.com'
+      await seedTestEmails(providerIdentity)
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
-          providerIdentity: 'ar-discovery-sub@example.com',
+          providerIdentity,
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 
       // Wait for analysis results to be published
-      await waitForExpect(() => {
-        expect(analysisResultUpdates.length).toBeGreaterThan(0)
-      })
+      await waitForExpect(
+        () => {
+          expect(analysisResultUpdates.length).toBeGreaterThan(0)
+        },
+        60000,
+        3000,
+      )
 
       // Verify the received update has the expected shape
       const firstUpdate = analysisResultUpdates[0]

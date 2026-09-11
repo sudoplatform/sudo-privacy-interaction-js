@@ -10,6 +10,7 @@ import { v4 } from 'uuid'
 import waitForExpect from 'wait-for-expect'
 import {
   ConnectionState,
+  RelationshipProvider,
   SudoPrivacyInteractionClient,
   VirtualPresence,
   VirtualPresenceState,
@@ -18,6 +19,7 @@ import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
+import { resolveRelationshipProvider } from './util/relationshipProvider'
 
 /**
  * These tests are designed to give us confidence that the built SudoPrivacyInteractionClient is functional
@@ -32,17 +34,20 @@ describe('SudoPrivacyInteractionClient Smoketest Test Suite', () => {
   let userClient: SudoUserClient
 
   let connectedVp: VirtualPresence
+  let relationshipProvider: RelationshipProvider
 
   beforeAll(async () => {
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
+    relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
 
     // Connect a virtual presence to use throughout the smoketest suite
     connectedVp =
       await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
         refreshToken: 'smoketest-refresh-token',
         providerIdentity: 'smoketest@example.com',
+        relationshipProvider,
       })
 
     log.info('Smoketest setup complete', {
@@ -113,6 +118,7 @@ describe('SudoPrivacyInteractionClient Smoketest Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'smoketest-refresh-token',
           providerIdentity: 'smoketest@example.com',
+          relationshipProvider,
         })
 
       // Wait for virtual presence to finish scanning and settle back to Connected

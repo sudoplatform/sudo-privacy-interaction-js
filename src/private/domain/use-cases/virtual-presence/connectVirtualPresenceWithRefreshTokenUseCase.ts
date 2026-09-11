@@ -5,6 +5,7 @@
  */
 
 import { DefaultLogger, Logger } from '@sudoplatform/sudo-common'
+import { RelationshipProviderEntity } from '../../entities/inputs/relationshipProviderEntity'
 import { VirtualPresenceEntity } from '../../entities/virtual-presence/virtualPresenceEntity'
 import { VirtualPresenceService } from '../../entities/virtual-presence/virtualPresenceService'
 
@@ -18,6 +19,7 @@ interface ConnectVirtualPresenceWithRefreshTokenUseCaseInput {
   providerIdentity: string
   scopes?: string[]
   expiresInEpochMs?: number
+  relationshipProvider?: RelationshipProviderEntity
 }
 
 /**
@@ -37,7 +39,13 @@ export class ConnectVirtualPresenceWithRefreshTokenUseCase {
   ): Promise<VirtualPresenceEntity> {
     this.log.debug(this.constructor.name)
     return await this.virtualPresenceService.connect({
-      refreshToken: input,
+      refreshToken: {
+        refreshToken: input.refreshToken,
+        providerIdentity: input.providerIdentity,
+        scopes: input.scopes,
+        expiresInEpochMs: input.expiresInEpochMs,
+      },
+      relationshipProvider: input.relationshipProvider,
     })
   }
 }

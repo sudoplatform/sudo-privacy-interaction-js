@@ -4,7 +4,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { OnVirtualPresenceUpdateSubscription } from '../../../gen/graphqlTypes'
+import {
+  ConnectVirtualPresenceInput as ConnectVirtualPresenceInputGraphQL,
+  OnVirtualPresenceUpdateSubscription,
+} from '../../../gen/graphqlTypes'
 import {
   ConnectionState,
   VirtualPresenceSubscriber,
@@ -20,11 +23,13 @@ import {
 } from '../../domain/entities/virtual-presence/virtualPresenceService'
 import { ApiClient } from '../common/apiClient'
 import { SubscriptionResult } from '../common/baseSubscriptionManager'
+import { RelationshipProviderTransformer } from './transformer/relationshipProviderTransformer'
 import { VirtualPresenceTransformer } from './transformer/virtualPresenceTransformer'
 import { VirtualPresenceSubscriptionManager } from './virtualPresenceSubscriptionManager'
 
 export class DefaultVirtualPresenceService implements VirtualPresenceService {
   private readonly virtualPresenceTransformer: VirtualPresenceTransformer
+  private readonly relationshipProviderTransformer: RelationshipProviderTransformer
   private readonly subscriptionManager: VirtualPresenceSubscriptionManager<
     OnVirtualPresenceUpdateSubscription,
     VirtualPresenceSubscriber
@@ -32,6 +37,7 @@ export class DefaultVirtualPresenceService implements VirtualPresenceService {
 
   constructor(private readonly appSync: ApiClient) {
     this.virtualPresenceTransformer = new VirtualPresenceTransformer()
+    this.relationshipProviderTransformer = new RelationshipProviderTransformer()
     this.subscriptionManager = new VirtualPresenceSubscriptionManager<
       OnVirtualPresenceUpdateSubscription,
       VirtualPresenceSubscriber
@@ -41,7 +47,16 @@ export class DefaultVirtualPresenceService implements VirtualPresenceService {
   async connect(
     input: ConnectVirtualPresenceInput,
   ): Promise<VirtualPresenceEntity> {
-    const result = await this.appSync.connectVirtualPresence(input)
+    const graphQLInput: ConnectVirtualPresenceInputGraphQL = {
+      authCode: input.authCode,
+      refreshToken: input.refreshToken,
+      relationshipProvider: input.relationshipProvider
+        ? this.relationshipProviderTransformer.fromEntityToGraphQL(
+            input.relationshipProvider,
+          )
+        : undefined,
+    }
+    const result = await this.appSync.connectVirtualPresence(graphQLInput)
     return this.virtualPresenceTransformer.fromGraphQLToEntity(result)
   }
 

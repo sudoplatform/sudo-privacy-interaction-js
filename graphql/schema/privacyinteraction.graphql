@@ -3,6 +3,12 @@ enum ProviderType {
   EMAIL
 }
 
+# The relationship provider used for discovery on a virtual presence.
+enum RelationshipProvider {
+  GMAIL_PROVIDER
+  TEST_PROVIDER
+}
+
 # The possible states of a virtual presence.
 enum VirtualPresenceState {
   CONNECTED
@@ -245,6 +251,9 @@ type VirtualPresence {
   # Current state (connected, scanning, needs_reauth, error).
   state: VirtualPresenceState!
 
+  # Which relationship provider to use for discovery.
+  relationshipProvider: RelationshipProvider
+
   # Time in milliseconds since 1970-01-01T00:00:00Z of most recent scan
   lastScannedAtEpochMs: Float!
 
@@ -350,10 +359,22 @@ type DataHoldersUpdate {
   owner: ID!
 }
 
+# Opaque provider configuration required by consumers to support the
+# provider OAuth flow. Data is base-64 encoded.
+type ProviderConfiguration {
+  data: ID!
+}
+
 # Input to listVirtualPresences query.
 input ListVirtualPresencesInput {
   limit: Int
   nextToken: String
+}
+
+# Input for providing an auth code and redirect uri.
+input AuthCodeInput {
+  authCode: String!
+  redirectUri: String
 }
 
 # Input for providing a pre-obtained refresh token credential.
@@ -366,8 +387,9 @@ input RefreshTokenInput {
 
 # Input to connectVirtualPresence mutation.
 input ConnectVirtualPresenceInput {
-  authCode: String
+  authCode: AuthCodeInput
   refreshToken: RefreshTokenInput
+  relationshipProvider: RelationshipProvider
 }
 
 # Options to control the scope and limits of a rescan.
@@ -380,6 +402,12 @@ input ScanOptionsInput {
 }
 
 type Query {
+  """
+  Get the opaque provider configuration required by consumers to support
+  the provider OAuth flow.
+  """
+  getProviderConfiguration: ProviderConfiguration!
+
   """
   List virtual presences for the authenticated user
   """

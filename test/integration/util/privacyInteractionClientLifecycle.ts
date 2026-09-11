@@ -72,6 +72,7 @@ export interface SetupPrivacyInteractionClientOutput {
   entitlementsClient: SudoEntitlementsClient
   entitlementsAdminClient: SudoEntitlementsAdminClient
   apiClient: ApiClient
+  owner: string
 }
 
 export const setupPrivacyInteractionClient = async (
@@ -106,6 +107,11 @@ export const setupPrivacyInteractionClient = async (
       throw err
     })
 
+    const owner = await userClient.getSubject()
+    if (!owner) {
+      throw new Error('Unable to resolve owner after sign in')
+    }
+
     const apiClientManager =
       DefaultApiClientManager.getInstance().setAuthClient(userClient)
     const entitlementsClient = new DefaultSudoEntitlementsClient(userClient)
@@ -137,6 +143,7 @@ export const setupPrivacyInteractionClient = async (
       apiClient,
       entitlementsClient,
       entitlementsAdminClient,
+      owner,
     }
   } catch (err) {
     log.error(`${setupPrivacyInteractionClient.name} FAILED`)

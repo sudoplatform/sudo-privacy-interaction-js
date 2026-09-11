@@ -13,6 +13,8 @@ import {
   DataHolderEntity,
   DataHolderProtectionStateEntity,
 } from '../../src/private/domain/entities/data-holder/dataHolderEntity'
+import { Base64 } from '@sudoplatform/sudo-common'
+import { ProviderConfigurationEntity } from '../../src/private/domain/entities/configuration/providerConfigurationEntity'
 import {
   AnalysisResultDataEntity,
   AnalysisResultEntity,
@@ -39,6 +41,28 @@ export class EntityDataFactory {
     createdAt: new Date(1.0),
     updatedAt: new Date(2.0),
   }
+
+  static readonly providerConfigurationData = Base64.encodeString(
+    JSON.stringify({
+      providers: [
+        {
+          name: 'google',
+          providerType: 'EMAIL',
+          clientId: 'test-client-id',
+        },
+      ],
+    }),
+  )
+
+  static readonly providerConfiguration: ProviderConfigurationEntity = {
+    name: 'google',
+    providerType: ProviderTypeEntity.Email,
+    clientId: 'test-client-id',
+  }
+
+  static readonly providerConfigurations: ProviderConfigurationEntity[] = [
+    EntityDataFactory.providerConfiguration,
+  ]
 
   static readonly virtualPresence: VirtualPresenceEntity = {
     ...EntityDataFactory.commonProps,

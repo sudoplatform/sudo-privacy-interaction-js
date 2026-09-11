@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Base64 } from '@sudoplatform/sudo-common'
 import {
   AnalysisResultFieldsFragment,
   DataHolderFieldsFragment,
@@ -12,6 +13,7 @@ import {
   OrganizationIdentity as GraphQLOrganizationIdentity,
   PrivacyScore as GraphQLPrivacyScore,
   PrivacySummary as GraphQLPrivacySummary,
+  ProviderConfiguration as GraphQLProviderConfiguration,
   RetentionInfo as GraphQLRetentionInfo,
   RiskIndicators as GraphQLRiskIndicators,
   VirtualPresence,
@@ -24,6 +26,20 @@ export class GraphQLDataFactory {
     version: 1,
     createdAtEpochMs: 1.0,
     updatedAtEpochMs: 2.0,
+  }
+
+  static readonly providerConfiguration: GraphQLProviderConfiguration = {
+    data: Base64.encodeString(
+      JSON.stringify({
+        providers: [
+          {
+            name: 'google',
+            providerType: 'EMAIL',
+            clientId: 'test-client-id',
+          },
+        ],
+      }),
+    ),
   }
 
   static readonly virtualPresence: VirtualPresence = {

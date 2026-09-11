@@ -16,6 +16,7 @@ import {
 import Observable from 'zen-observable'
 import { ApiClient } from '../../../../../src/private/data/common/apiClient'
 import { DefaultVirtualPresenceService } from '../../../../../src/private/data/virtual-presence/defaultVirtualPresenceService'
+import { RelationshipProviderEntity } from '../../../../../src/private/domain/entities/inputs/relationshipProviderEntity'
 import {
   ConnectionState,
   VirtualPresenceSubscriber,
@@ -40,13 +41,15 @@ describe('DefaultVirtualPresenceService Test Suite', () => {
       )
 
       const result = await instanceUnderTest.connect({
-        authCode: 'test-auth-code',
+        authCode: { authCode: 'test-auth-code' },
       })
 
       expect(result).toStrictEqual(EntityDataFactory.virtualPresence)
       const [inputArgs] = capture(mockAppSync.connectVirtualPresence).first()
       expect(inputArgs).toStrictEqual<typeof inputArgs>({
-        authCode: 'test-auth-code',
+        authCode: { authCode: 'test-auth-code' },
+        refreshToken: undefined,
+        relationshipProvider: undefined,
       })
       verify(mockAppSync.connectVirtualPresence(anything())).once()
     })
@@ -66,7 +69,28 @@ describe('DefaultVirtualPresenceService Test Suite', () => {
 
       const [inputArgs] = capture(mockAppSync.connectVirtualPresence).first()
       expect(inputArgs).toStrictEqual<typeof inputArgs>({
+        authCode: undefined,
         refreshToken,
+        relationshipProvider: undefined,
+      })
+      verify(mockAppSync.connectVirtualPresence(anything())).once()
+    })
+
+    it('calls appSync with input including the relationship provider and returns result correctly', async () => {
+      when(mockAppSync.connectVirtualPresence(anything())).thenResolve(
+        GraphQLDataFactory.virtualPresence,
+      )
+
+      await instanceUnderTest.connect({
+        authCode: { authCode: 'test-auth-code' },
+        relationshipProvider: RelationshipProviderEntity.GmailProvider,
+      })
+
+      const [inputArgs] = capture(mockAppSync.connectVirtualPresence).first()
+      expect(inputArgs).toStrictEqual<typeof inputArgs>({
+        authCode: { authCode: 'test-auth-code' },
+        refreshToken: undefined,
+        relationshipProvider: 'GMAIL_PROVIDER',
       })
       verify(mockAppSync.connectVirtualPresence(anything())).once()
     })
@@ -77,7 +101,7 @@ describe('DefaultVirtualPresenceService Test Suite', () => {
       )
 
       await expect(
-        instanceUnderTest.connect({ authCode: 'bad-code' }),
+        instanceUnderTest.connect({ authCode: { authCode: 'bad-code' } }),
       ).rejects.toThrow('connect failed')
       verify(mockAppSync.connectVirtualPresence(anything())).once()
     })

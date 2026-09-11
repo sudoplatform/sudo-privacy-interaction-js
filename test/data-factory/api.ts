@@ -17,6 +17,7 @@ import {
   OrganizationIdentity,
   PrivacyScore,
   PrivacySummary,
+  ProviderConfiguration,
   ProviderType,
   RetentionInfo,
   RetentionStyle,
@@ -35,6 +36,16 @@ export class APIDataFactory {
     createdAt: new Date(1.0),
     updatedAt: new Date(2.0),
   }
+
+  static readonly providerConfiguration: ProviderConfiguration = {
+    name: 'google',
+    providerType: ProviderType.Email,
+    clientId: 'test-client-id',
+  }
+
+  static readonly providerConfigurations: ProviderConfiguration[] = [
+    APIDataFactory.providerConfiguration,
+  ]
 
   static readonly virtualPresence: VirtualPresence = {
     ...APIDataFactory.commonProps,

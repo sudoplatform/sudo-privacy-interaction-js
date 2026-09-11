@@ -10,6 +10,7 @@ import { v4 } from 'uuid'
 import waitForExpect from 'wait-for-expect'
 import {
   ConnectionState,
+  RelationshipProvider,
   SudoPrivacyInteractionClient,
   VirtualPresenceState,
 } from '../../src/public'
@@ -17,6 +18,7 @@ import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
+import { resolveRelationshipProvider } from './util/relationshipProvider'
 
 describe('Virtual Presence Integration Test Suite', () => {
   const log = new DefaultLogger('VirtualPresenceIntegrationTest')
@@ -24,6 +26,7 @@ describe('Virtual Presence Integration Test Suite', () => {
   let setup: SetupPrivacyInteractionClientOutput
   let instanceUnderTest: SudoPrivacyInteractionClient
   let userClient: SudoUserClient
+  let relationshipProvider: RelationshipProvider
 
   const connectedIds = new Set<string>()
 
@@ -31,6 +34,7 @@ describe('Virtual Presence Integration Test Suite', () => {
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
+    relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
   })
 
   afterEach(async () => {
@@ -55,6 +59,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'integration-test@example.com',
+          relationshipProvider,
         })
       expect(connectedVp).toBeDefined()
       expect(connectedVp.id).toBeDefined()
@@ -96,6 +101,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token1',
           providerIdentity: 'integration-test1@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp1.id)
       expect(connectedVp1).toBeDefined()
@@ -104,6 +110,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token2',
           providerIdentity: 'integration-test2@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp2.id)
       expect(connectedVp2).toBeDefined()
@@ -122,6 +129,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token1',
           providerIdentity: 'integration-test1@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp1.id)
       expect(connectedVp1).toBeDefined()
@@ -138,6 +146,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token2',
           providerIdentity: 'integration-test2@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp2.id)
       expect(connectedVp2).toBeDefined()
@@ -152,6 +161,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'rescan-test@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
       expect(connectedVp).toBeDefined()
@@ -174,6 +184,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'rescan-options-test@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
       expect(connectedVp).toBeDefined()
@@ -238,6 +249,7 @@ describe('Virtual Presence Integration Test Suite', () => {
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
           providerIdentity: 'no-notify-test@example.com',
+          relationshipProvider,
         })
       connectedIds.add(connectedVp.id)
 

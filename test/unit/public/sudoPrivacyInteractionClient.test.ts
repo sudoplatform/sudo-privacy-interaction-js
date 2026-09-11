@@ -18,11 +18,13 @@ import {
 import { v4 } from 'uuid'
 import { DefaultAnalysisResultService } from '../../../src/private/data/analysis-result/defaultAnalysisResultService'
 import { ApiClient } from '../../../src/private/data/common/apiClient'
+import { DefaultProviderConfigurationService } from '../../../src/private/data/provider-configuration/defaultProviderConfigurationService'
 import { PrivacyInteractionServiceConfig } from '../../../src/private/data/common/config'
 import { PrivateSudoPrivacyInteractionClientOptions } from '../../../src/private/data/common/privateSudoPrivacyInteractionClientOptions'
 import { DefaultDataHolderService } from '../../../src/private/data/data-holder/defaultDataHolderService'
 import { DefaultVirtualPresenceService } from '../../../src/private/data/virtual-presence/defaultVirtualPresenceService'
 import { GetAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
+import { GetProviderConfigurationUseCase } from '../../../src/private/domain/use-cases/configuration/getProviderConfigurationUseCase'
 import { ListAnalysisResultsUseCase } from '../../../src/private/domain/use-cases/analysis-result/listAnalysisResultsUseCase'
 import { SubscribeToAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/subscribeToAnalysisResultUseCase'
 import { UnsubscribeFromAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/unsubscribeFromAnalysisResultUseCase'
@@ -44,6 +46,8 @@ import {
   DataHolderSubscriber,
   VirtualPresenceSubscriber,
 } from '../../../src/public/typings/subscription'
+import { RelationshipProviderEntity } from '../../../src/private/domain/entities/inputs/relationshipProviderEntity'
+import { RelationshipProvider } from '../../../src/public/inputs/virtualPresence'
 import { APIDataFactory } from '../../data-factory/api'
 import { EntityDataFactory } from '../../data-factory/entity'
 
@@ -66,6 +70,13 @@ vi.mock(
 )
 const ViMockDefaultAnalysisResultService = vi.mocked(
   DefaultAnalysisResultService,
+)
+
+vi.mock(
+  '../../../src/private/data/provider-configuration/defaultProviderConfigurationService',
+)
+const ViMockDefaultProviderConfigurationService = vi.mocked(
+  DefaultProviderConfigurationService,
 )
 
 // MARK: Use case mocks
@@ -135,6 +146,12 @@ vi.mock(
 )
 const ViMockGetAnalysisResultUseCase = vi.mocked(GetAnalysisResultUseCase)
 vi.mock(
+  '../../../src/private/domain/use-cases/configuration/getProviderConfigurationUseCase',
+)
+const ViMockGetProviderConfigurationUseCase = vi.mocked(
+  GetProviderConfigurationUseCase,
+)
+vi.mock(
   '../../../src/private/domain/use-cases/analysis-result/listAnalysisResultsUseCase',
 )
 const ViMockListAnalysisResultsUseCase = vi.mocked(ListAnalysisResultsUseCase)
@@ -160,6 +177,8 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
   const mockVirtualPresenceService = mock<DefaultVirtualPresenceService>()
   const mockDataHolderService = mock<DefaultDataHolderService>()
   const mockAnalysisResultService = mock<DefaultAnalysisResultService>()
+  const mockProviderConfigurationService =
+    mock<DefaultProviderConfigurationService>()
 
   const mockConnectVirtualPresenceWithAuthCodeUseCase =
     mock<ConnectVirtualPresenceWithAuthCodeUseCase>()
@@ -180,6 +199,8 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
   const mockUnsubscribeFromDataHoldersUseCase =
     mock<UnsubscribeFromDataHoldersUseCase>()
   const mockGetAnalysisResultUseCase = mock<GetAnalysisResultUseCase>()
+  const mockGetProviderConfigurationUseCase =
+    mock<GetProviderConfigurationUseCase>()
   const mockListAnalysisResultsUseCase = mock<ListAnalysisResultsUseCase>()
   const mockSubscribeToAnalysisResultUseCase =
     mock<SubscribeToAnalysisResultUseCase>()
@@ -202,6 +223,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockVirtualPresenceService)
     reset(mockDataHolderService)
     reset(mockAnalysisResultService)
+    reset(mockProviderConfigurationService)
 
     reset(mockConnectVirtualPresenceWithAuthCodeUseCase)
     reset(mockConnectVirtualPresenceWithRefreshTokenUseCase)
@@ -215,6 +237,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockSubscribeToDataHoldersUseCase)
     reset(mockUnsubscribeFromDataHoldersUseCase)
     reset(mockGetAnalysisResultUseCase)
+    reset(mockGetProviderConfigurationUseCase)
     reset(mockListAnalysisResultsUseCase)
     reset(mockSubscribeToAnalysisResultUseCase)
     reset(mockUnsubscribeFromAnalysisResultUseCase)
@@ -232,6 +255,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockSubscribeToDataHoldersUseCase.mockClear()
     ViMockUnsubscribeFromDataHoldersUseCase.mockClear()
     ViMockGetAnalysisResultUseCase.mockClear()
+    ViMockGetProviderConfigurationUseCase.mockClear()
     ViMockListAnalysisResultsUseCase.mockClear()
     ViMockSubscribeToAnalysisResultUseCase.mockClear()
     ViMockUnsubscribeFromAnalysisResultUseCase.mockClear()
@@ -251,6 +275,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     })
     ViMockDefaultAnalysisResultService.mockImplementation(function () {
       return instance(mockAnalysisResultService)
+    })
+    ViMockDefaultProviderConfigurationService.mockImplementation(function () {
+      return instance(mockProviderConfigurationService)
     })
     ViMockConnectVirtualPresenceWithAuthCodeUseCase.mockImplementation(
       function () {
@@ -292,6 +319,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockGetAnalysisResultUseCase.mockImplementation(function () {
       return instance(mockGetAnalysisResultUseCase)
     })
+    ViMockGetProviderConfigurationUseCase.mockImplementation(function () {
+      return instance(mockGetProviderConfigurationUseCase)
+    })
     ViMockListAnalysisResultsUseCase.mockImplementation(function () {
       return instance(mockListAnalysisResultsUseCase)
     })
@@ -331,6 +361,39 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     })
   })
 
+  // MARK: Configuration
+
+  describe('getProviderConfiguration', () => {
+    beforeEach(() => {
+      when(mockGetProviderConfigurationUseCase.execute()).thenResolve(
+        EntityDataFactory.providerConfigurations,
+      )
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.getProviderConfiguration()
+      expect(vi.mocked(GetProviderConfigurationUseCase)).toHaveBeenCalledTimes(
+        1,
+      )
+    })
+    it('calls use case', async () => {
+      await instanceUnderTest.getProviderConfiguration()
+      verify(mockGetProviderConfigurationUseCase.execute()).once()
+    })
+    it('returns expected result', async () => {
+      await expect(
+        instanceUnderTest.getProviderConfiguration(),
+      ).resolves.toStrictEqual(APIDataFactory.providerConfigurations)
+    })
+    it('throws when use case throws', async () => {
+      when(mockGetProviderConfigurationUseCase.execute()).thenReject(
+        new Error('config error'),
+      )
+      await expect(
+        instanceUnderTest.getProviderConfiguration(),
+      ).rejects.toThrow('config error')
+    })
+  })
+
   // MARK: Virtual Presence
 
   describe('connectVirtualPresenceWithAuthCode', () => {
@@ -340,28 +403,68 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       ).thenResolve(EntityDataFactory.virtualPresence)
     })
     it('generates use case', async () => {
-      await instanceUnderTest.connectVirtualPresenceWithAuthCode(
-        'test-auth-code',
-      )
+      await instanceUnderTest.connectVirtualPresenceWithAuthCode({
+        authCode: 'test-auth-code',
+      })
       expect(
         vi.mocked(ConnectVirtualPresenceWithAuthCodeUseCase),
       ).toHaveBeenCalledTimes(1)
     })
-    it('calls use case with authCode', async () => {
-      await instanceUnderTest.connectVirtualPresenceWithAuthCode(
-        'test-auth-code',
-      )
+    it('calls use case with input', async () => {
+      await instanceUnderTest.connectVirtualPresenceWithAuthCode({
+        authCode: 'test-auth-code',
+      })
       verify(
         mockConnectVirtualPresenceWithAuthCodeUseCase.execute(anything()),
       ).once()
       const [args] = capture(
         mockConnectVirtualPresenceWithAuthCodeUseCase.execute,
       ).first()
-      expect(args).toStrictEqual('test-auth-code')
+      expect(args).toStrictEqual({
+        authCode: 'test-auth-code',
+        redirectUri: undefined,
+        relationshipProvider: undefined,
+      })
+    })
+    it('calls use case with input including redirectUri', async () => {
+      await instanceUnderTest.connectVirtualPresenceWithAuthCode({
+        authCode: 'test-auth-code',
+        redirectUri: 'https://example.com/callback',
+      })
+      verify(
+        mockConnectVirtualPresenceWithAuthCodeUseCase.execute(anything()),
+      ).once()
+      const [args] = capture(
+        mockConnectVirtualPresenceWithAuthCodeUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        authCode: 'test-auth-code',
+        redirectUri: 'https://example.com/callback',
+        relationshipProvider: undefined,
+      })
+    })
+    it('calls use case with input including relationshipProvider', async () => {
+      await instanceUnderTest.connectVirtualPresenceWithAuthCode({
+        authCode: 'test-auth-code',
+        relationshipProvider: RelationshipProvider.GmailProvider,
+      })
+      verify(
+        mockConnectVirtualPresenceWithAuthCodeUseCase.execute(anything()),
+      ).once()
+      const [args] = capture(
+        mockConnectVirtualPresenceWithAuthCodeUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        authCode: 'test-auth-code',
+        redirectUri: undefined,
+        relationshipProvider: RelationshipProviderEntity.GmailProvider,
+      })
     })
     it('returns expected result', async () => {
       await expect(
-        instanceUnderTest.connectVirtualPresenceWithAuthCode('test-auth-code'),
+        instanceUnderTest.connectVirtualPresenceWithAuthCode({
+          authCode: 'test-auth-code',
+        }),
       ).resolves.toStrictEqual(APIDataFactory.virtualPresence)
     })
     it('throws when use case throws', async () => {
@@ -369,7 +472,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
         mockConnectVirtualPresenceWithAuthCodeUseCase.execute(anything()),
       ).thenReject(new Error('connect error'))
       await expect(
-        instanceUnderTest.connectVirtualPresenceWithAuthCode('bad-token'),
+        instanceUnderTest.connectVirtualPresenceWithAuthCode({
+          authCode: 'bad-token',
+        }),
       ).rejects.toThrow('connect error')
     })
   })
@@ -407,7 +512,33 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       const [args] = capture(
         mockConnectVirtualPresenceWithRefreshTokenUseCase.execute,
       ).first()
-      expect(args).toStrictEqual(refreshToken)
+      expect(args).toStrictEqual({
+        refreshToken: 'test-refresh-token',
+        providerIdentity: 'test@example.com',
+        scopes: ['emailAddress'],
+        expiresInEpochMs: undefined,
+        relationshipProvider: undefined,
+      })
+    })
+    it('calls use case with input including relationshipProvider', async () => {
+      await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
+        refreshToken: 'test-refresh-token',
+        providerIdentity: 'test@example.com',
+        relationshipProvider: RelationshipProvider.TestProvider,
+      })
+      verify(
+        mockConnectVirtualPresenceWithRefreshTokenUseCase.execute(anything()),
+      ).once()
+      const [args] = capture(
+        mockConnectVirtualPresenceWithRefreshTokenUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        refreshToken: 'test-refresh-token',
+        providerIdentity: 'test@example.com',
+        scopes: undefined,
+        expiresInEpochMs: undefined,
+        relationshipProvider: RelationshipProviderEntity.TestProvider,
+      })
     })
     it('returns expected result', async () => {
       const refreshToken = {

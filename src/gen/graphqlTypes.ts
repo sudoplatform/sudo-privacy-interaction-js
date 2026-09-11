@@ -87,6 +87,11 @@ export type AnalysisResultUpdate = {
   virtualPresenceId: Scalars['ID']['output']
 }
 
+export type AuthCodeInput = {
+  authCode: Scalars['String']['input']
+  redirectUri?: InputMaybe<Scalars['String']['input']>
+}
+
 export type CapabilitySignals = {
   sellsPersonalInformation: SignalValue
   supportsAccountCreation: SignalValue
@@ -112,8 +117,9 @@ export type CategorySignals = {
 }
 
 export type ConnectVirtualPresenceInput = {
-  authCode?: InputMaybe<Scalars['String']['input']>
+  authCode?: InputMaybe<AuthCodeInput>
   refreshToken?: InputMaybe<RefreshTokenInput>
+  relationshipProvider?: InputMaybe<RelationshipProvider>
 }
 
 export type DataCategory =
@@ -261,6 +267,10 @@ export type PrivacySummary = {
   sourceUrl: Scalars['String']['output']
 }
 
+export type ProviderConfiguration = {
+  data: Scalars['ID']['output']
+}
+
 export type ProviderType = 'EMAIL' | '%future added value'
 
 export type Query = {
@@ -268,6 +278,11 @@ export type Query = {
   getAnalysisResult?: Maybe<AnalysisResult>
   /** Get a single data holder by ID */
   getDataHolder?: Maybe<DataHolder>
+  /**
+   * Get the opaque provider configuration required by consumers to support
+   * the provider OAuth flow.
+   */
+  getProviderConfiguration: ProviderConfiguration
   /** List analysis results for a virtual presence. */
   listAnalysisResults: AnalysisResultConnection
   /** List data holders by virtual presence */
@@ -306,6 +321,9 @@ export type RefreshTokenInput = {
   refreshToken: Scalars['String']['input']
   scopes?: InputMaybe<Array<Scalars['String']['input']>>
 }
+
+export type RelationshipProvider =
+  'GMAIL_PROVIDER' | 'TEST_PROVIDER' | '%future added value'
 
 export type RetentionInfo = {
   additionalInfo?: Maybe<Scalars['String']['output']>
@@ -390,6 +408,7 @@ export type VirtualPresence = {
   lastScannedAtEpochMs: Scalars['Float']['output']
   owner: Scalars['ID']['output']
   providerType: ProviderType
+  relationshipProvider?: Maybe<RelationshipProvider>
   state: VirtualPresenceState
   updatedAtEpochMs: Scalars['Float']['output']
   version: Scalars['Int']['output']
@@ -552,6 +571,14 @@ export type RescanVirtualPresenceMutation = {
     createdAtEpochMs: number
     updatedAtEpochMs: number
   }
+}
+
+export type GetProviderConfigurationQueryVariables = Exact<{
+  [key: string]: never
+}>
+
+export type GetProviderConfigurationQuery = {
+  getProviderConfiguration: { data: string }
 }
 
 export type ListVirtualPresencesQueryVariables = Exact<{
@@ -1421,6 +1448,34 @@ export const RescanVirtualPresenceDocument = {
 } as unknown as DocumentNode<
   RescanVirtualPresenceMutation,
   RescanVirtualPresenceMutationVariables
+>
+export const GetProviderConfigurationDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetProviderConfiguration' },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getProviderConfiguration' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'data' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetProviderConfigurationQuery,
+  GetProviderConfigurationQueryVariables
 >
 export const ListVirtualPresencesDocument = {
   kind: 'Document',

@@ -38,6 +38,10 @@ import {
   GetDataHolderDocument,
   GetDataHolderQuery,
   GetDataHolderQueryVariables,
+  GetProviderConfigurationDocument,
+  GetProviderConfigurationQuery,
+  GetProviderConfigurationQueryVariables,
+  ProviderConfiguration,
   ListAnalysisResultsDocument,
   ListAnalysisResultsQuery,
   ListAnalysisResultsQueryVariables,
@@ -124,6 +128,15 @@ export class ApiClient {
       calleeName: this.listVirtualPresences.name,
     })
     return data.listVirtualPresences
+  }
+
+  public async getProviderConfiguration(): Promise<ProviderConfiguration> {
+    const data = await this.performQuery<GetProviderConfigurationQuery>({
+      query: GetProviderConfigurationDocument,
+      variables: {} as GetProviderConfigurationQueryVariables,
+      calleeName: this.getProviderConfiguration.name,
+    })
+    return data.getProviderConfiguration
   }
 
   public async getDataHolder(id: string): Promise<DataHolder | undefined> {
