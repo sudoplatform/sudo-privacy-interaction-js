@@ -327,6 +327,9 @@ describe('Analysis Result Integration Test Suite', () => {
 
       expect(connectionState).toBe(ConnectionState.Connected)
 
+      // Small delay to ensure subscription is established
+      await new Promise((resolve) => setTimeout(resolve, 5000))
+
       // Seed emails then connect a VP to trigger discovery → data holders →
       // analysis pipeline
       const providerIdentity = 'ar-discovery-sub@example.com'

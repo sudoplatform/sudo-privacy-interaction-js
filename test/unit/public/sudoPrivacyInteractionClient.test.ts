@@ -24,12 +24,15 @@ import { PrivateSudoPrivacyInteractionClientOptions } from '../../../src/private
 import { DefaultDataHolderService } from '../../../src/private/data/data-holder/defaultDataHolderService'
 import { DefaultVirtualPresenceService } from '../../../src/private/data/virtual-presence/defaultVirtualPresenceService'
 import { GetAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
+import { GetOrganizationAnalysisUseCase } from '../../../src/private/domain/use-cases/organization-analysis/getOrganizationAnalysisUseCase'
+import { OrganizationAnalysisModeEntity } from '../../../src/private/domain/entities/organization-analysis/organizationAnalysisEntity'
 import { GetProviderConfigurationUseCase } from '../../../src/private/domain/use-cases/configuration/getProviderConfigurationUseCase'
 import { ListAnalysisResultsUseCase } from '../../../src/private/domain/use-cases/analysis-result/listAnalysisResultsUseCase'
 import { SubscribeToAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/subscribeToAnalysisResultUseCase'
 import { UnsubscribeFromAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/unsubscribeFromAnalysisResultUseCase'
 import { GetDataHolderUseCase } from '../../../src/private/domain/use-cases/data-holder/getDataHolderUseCase'
 import { ListDataHoldersUseCase } from '../../../src/private/domain/use-cases/data-holder/listDataHoldersUseCase'
+import { ListDataHolderScanSummariesUseCase } from '../../../src/private/domain/use-cases/data-holder/listDataHolderScanSummariesUseCase'
 import { SubscribeToDataHoldersUseCase } from '../../../src/private/domain/use-cases/data-holder/subscribeToDataHoldersUseCase'
 import { UnsubscribeFromDataHoldersUseCase } from '../../../src/private/domain/use-cases/data-holder/unsubscribeFromDataHoldersUseCase'
 import { ConnectVirtualPresenceWithAuthCodeUseCase } from '../../../src/private/domain/use-cases/virtual-presence/connectVirtualPresenceWithAuthCodeUseCase'
@@ -46,6 +49,7 @@ import {
   DataHolderSubscriber,
   VirtualPresenceSubscriber,
 } from '../../../src/public/typings/subscription'
+import { OrganizationAnalysisMode } from '../../../src/public'
 import { RelationshipProviderEntity } from '../../../src/private/domain/entities/inputs/relationshipProviderEntity'
 import { RelationshipProvider } from '../../../src/public/inputs/virtualPresence'
 import { APIDataFactory } from '../../data-factory/api'
@@ -130,6 +134,12 @@ vi.mock(
 )
 const ViMockListDataHoldersUseCase = vi.mocked(ListDataHoldersUseCase)
 vi.mock(
+  '../../../src/private/domain/use-cases/data-holder/listDataHolderScanSummariesUseCase',
+)
+const ViMockListDataHolderScanSummariesUseCase = vi.mocked(
+  ListDataHolderScanSummariesUseCase,
+)
+vi.mock(
   '../../../src/private/domain/use-cases/data-holder/subscribeToDataHoldersUseCase',
 )
 const ViMockSubscribeToDataHoldersUseCase = vi.mocked(
@@ -145,6 +155,12 @@ vi.mock(
   '../../../src/private/domain/use-cases/analysis-result/getAnalysisResultUseCase',
 )
 const ViMockGetAnalysisResultUseCase = vi.mocked(GetAnalysisResultUseCase)
+vi.mock(
+  '../../../src/private/domain/use-cases/organization-analysis/getOrganizationAnalysisUseCase',
+)
+const ViMockGetOrganizationAnalysisUseCase = vi.mocked(
+  GetOrganizationAnalysisUseCase,
+)
 vi.mock(
   '../../../src/private/domain/use-cases/configuration/getProviderConfigurationUseCase',
 )
@@ -194,11 +210,15 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     mock<UnsubscribeFromVirtualPresenceUseCase>()
   const mockGetDataHolderUseCase = mock<GetDataHolderUseCase>()
   const mockListDataHoldersUseCase = mock<ListDataHoldersUseCase>()
+  const mockListDataHolderScanSummariesUseCase =
+    mock<ListDataHolderScanSummariesUseCase>()
   const mockSubscribeToDataHoldersUseCase =
     mock<SubscribeToDataHoldersUseCase>()
   const mockUnsubscribeFromDataHoldersUseCase =
     mock<UnsubscribeFromDataHoldersUseCase>()
   const mockGetAnalysisResultUseCase = mock<GetAnalysisResultUseCase>()
+  const mockGetOrganizationAnalysisUseCase =
+    mock<GetOrganizationAnalysisUseCase>()
   const mockGetProviderConfigurationUseCase =
     mock<GetProviderConfigurationUseCase>()
   const mockListAnalysisResultsUseCase = mock<ListAnalysisResultsUseCase>()
@@ -234,9 +254,11 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockUnsubscribeFromVirtualPresenceUseCase)
     reset(mockGetDataHolderUseCase)
     reset(mockListDataHoldersUseCase)
+    reset(mockListDataHolderScanSummariesUseCase)
     reset(mockSubscribeToDataHoldersUseCase)
     reset(mockUnsubscribeFromDataHoldersUseCase)
     reset(mockGetAnalysisResultUseCase)
+    reset(mockGetOrganizationAnalysisUseCase)
     reset(mockGetProviderConfigurationUseCase)
     reset(mockListAnalysisResultsUseCase)
     reset(mockSubscribeToAnalysisResultUseCase)
@@ -251,10 +273,12 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockSubscribeToVirtualPresenceUseCase.mockClear()
     ViMockUnsubscribeFromVirtualPresenceUseCase.mockClear()
     ViMockListDataHoldersUseCase.mockClear()
+    ViMockListDataHolderScanSummariesUseCase.mockClear()
     ViMockGetDataHolderUseCase.mockClear()
     ViMockSubscribeToDataHoldersUseCase.mockClear()
     ViMockUnsubscribeFromDataHoldersUseCase.mockClear()
     ViMockGetAnalysisResultUseCase.mockClear()
+    ViMockGetOrganizationAnalysisUseCase.mockClear()
     ViMockGetProviderConfigurationUseCase.mockClear()
     ViMockListAnalysisResultsUseCase.mockClear()
     ViMockSubscribeToAnalysisResultUseCase.mockClear()
@@ -310,6 +334,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockListDataHoldersUseCase.mockImplementation(function () {
       return instance(mockListDataHoldersUseCase)
     })
+    ViMockListDataHolderScanSummariesUseCase.mockImplementation(function () {
+      return instance(mockListDataHolderScanSummariesUseCase)
+    })
     ViMockSubscribeToDataHoldersUseCase.mockImplementation(function () {
       return instance(mockSubscribeToDataHoldersUseCase)
     })
@@ -318,6 +345,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     })
     ViMockGetAnalysisResultUseCase.mockImplementation(function () {
       return instance(mockGetAnalysisResultUseCase)
+    })
+    ViMockGetOrganizationAnalysisUseCase.mockImplementation(function () {
+      return instance(mockGetOrganizationAnalysisUseCase)
     })
     ViMockGetProviderConfigurationUseCase.mockImplementation(function () {
       return instance(mockGetProviderConfigurationUseCase)
@@ -766,6 +796,12 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       when(mockGetDataHolderUseCase.execute(anything())).thenResolve(
         EntityDataFactory.dataHolder,
       )
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenResolve({
+        scanSummaries: [EntityDataFactory.dataHolderScanSummary],
+        nextToken: undefined,
+      })
     })
     it('generates use case', async () => {
       await instanceUnderTest.getDataHolder('testId')
@@ -777,7 +813,41 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       const [idArg] = capture(mockGetDataHolderUseCase.execute).first()
       expect(idArg).toBe('testId')
     })
-    it('returns expected result', async () => {
+    it('returns data holder with latest scan summary attached by default', async () => {
+      await expect(
+        instanceUnderTest.getDataHolder('testId'),
+      ).resolves.toStrictEqual({
+        ...APIDataFactory.dataHolder,
+        latestScanSummary: APIDataFactory.dataHolderScanSummary,
+      })
+    })
+    it('fetches the latest scan summary with limit 1', async () => {
+      await instanceUnderTest.getDataHolder('testId')
+      verify(mockListDataHolderScanSummariesUseCase.execute(anything())).once()
+      const [args] = capture(
+        mockListDataHolderScanSummariesUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({ dataHolderId: 'testId', limit: 1 })
+    })
+    it('omits latestScanSummary when there are no scan summaries', async () => {
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenResolve({ scanSummaries: [], nextToken: undefined })
+      await expect(
+        instanceUnderTest.getDataHolder('testId'),
+      ).resolves.toStrictEqual(APIDataFactory.dataHolder)
+    })
+    it('does not fetch scan summaries when includeScanSummary is false', async () => {
+      const result = await instanceUnderTest.getDataHolder('testId', {
+        includeScanSummary: false,
+      })
+      expect(result).toStrictEqual(APIDataFactory.dataHolder)
+      verify(mockListDataHolderScanSummariesUseCase.execute(anything())).never()
+    })
+    it('returns data holder without summary when scan summary fetch fails', async () => {
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenReject(new Error('scan summary error'))
       await expect(
         instanceUnderTest.getDataHolder('testId'),
       ).resolves.toStrictEqual(APIDataFactory.dataHolder)
@@ -852,6 +922,72 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       )
       await expect(
         instanceUnderTest.listDataHolders(anything()),
+      ).rejects.toThrow('use case error')
+    })
+  })
+
+  describe('listDataHolderScanSummaries', () => {
+    beforeEach(() => {
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenResolve({
+        scanSummaries: [EntityDataFactory.dataHolderScanSummary],
+        nextToken: 'nextToken',
+      })
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.listDataHolderScanSummaries(anything())
+      expect(
+        vi.mocked(ListDataHolderScanSummariesUseCase),
+      ).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case as expected', async () => {
+      const dataHolderId = 'testId'
+      const limit = 100
+      const nextToken = v4()
+      await instanceUnderTest.listDataHolderScanSummaries({
+        dataHolderId,
+        limit,
+        nextToken,
+      })
+      verify(mockListDataHolderScanSummariesUseCase.execute(anything())).once()
+      const [args] = capture(
+        mockListDataHolderScanSummariesUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        dataHolderId,
+        limit,
+        nextToken,
+      })
+    })
+    it('returns empty list if use case result is empty list', async () => {
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenResolve({
+        scanSummaries: [],
+        nextToken: undefined,
+      })
+      await expect(
+        instanceUnderTest.listDataHolderScanSummaries(anything()),
+      ).resolves.toStrictEqual({
+        items: [],
+        nextToken: undefined,
+      })
+    })
+    it('returns expected result', async () => {
+      await expect(
+        instanceUnderTest.listDataHolderScanSummaries(anything()),
+      ).resolves.toStrictEqual({
+        items: [APIDataFactory.dataHolderScanSummary],
+        nextToken: 'nextToken',
+      })
+    })
+    it('throws when use case throws', async () => {
+      when(
+        mockListDataHolderScanSummariesUseCase.execute(anything()),
+      ).thenReject(new Error('use case error'))
+      await expect(
+        instanceUnderTest.listDataHolderScanSummaries(anything()),
       ).rejects.toThrow('use case error')
     })
   })
@@ -1063,6 +1199,56 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
         mockUnsubscribeFromAnalysisResultUseCase.execute,
       ).first()
       expect(args).toBe('sub-1')
+    })
+  })
+
+  describe('getOrganizationAnalysis', () => {
+    beforeEach(() => {
+      when(mockGetOrganizationAnalysisUseCase.execute(anything())).thenResolve(
+        EntityDataFactory.organizationAnalysis,
+      )
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' })
+      expect(vi.mocked(GetOrganizationAnalysisUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with domain and transformed mode', async () => {
+      await instanceUnderTest.getOrganizationAnalysis({
+        domain: 'example.com',
+        mode: OrganizationAnalysisMode.Fetch,
+      })
+      verify(mockGetOrganizationAnalysisUseCase.execute(anything())).once()
+      const [args] = capture(mockGetOrganizationAnalysisUseCase.execute).first()
+      expect(args).toStrictEqual({
+        domain: 'example.com',
+        mode: OrganizationAnalysisModeEntity.Fetch,
+      })
+    })
+    it('passes undefined mode when omitted', async () => {
+      await instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' })
+      const [args] = capture(mockGetOrganizationAnalysisUseCase.execute).first()
+      expect(args).toStrictEqual({ domain: 'example.com', mode: undefined })
+    })
+    it('returns expected result', async () => {
+      await expect(
+        instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' }),
+      ).resolves.toStrictEqual(APIDataFactory.organizationAnalysis)
+    })
+    it('returns undefined when not found', async () => {
+      when(mockGetOrganizationAnalysisUseCase.execute(anything())).thenResolve(
+        undefined,
+      )
+      await expect(
+        instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' }),
+      ).resolves.toBeUndefined()
+    })
+    it('throws when use case throws', async () => {
+      when(mockGetOrganizationAnalysisUseCase.execute(anything())).thenReject(
+        new Error('get error'),
+      )
+      await expect(
+        instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' }),
+      ).rejects.toThrow('get error')
     })
   })
 })

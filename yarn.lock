@@ -3212,6 +3212,7 @@ __metadata:
     "@sudoplatform/sudo-entitlements-admin": "npm:^13.0.2"
     "@sudoplatform/sudo-user": "npm:^17.1.1"
     "@types/uuid": "npm:^10.0.0"
+    "@types/ws": "npm:^8.18.1"
     "@typescript-eslint/eslint-plugin": "npm:^8.26.1"
     "@typescript-eslint/parser": "npm:^8.26.1"
     "@vitest/coverage-v8": "npm:^4.1.11"
@@ -3236,6 +3237,7 @@ __metadata:
     uuid: "npm:^11.1.0"
     vitest: "npm:^4.1.11"
     wait-for-expect: "npm:^4.0.0"
+    ws: "npm:^8.21.3"
   peerDependencies:
     "@sudoplatform/sudo-api-client": ^16.2.0
     "@sudoplatform/sudo-common": ^12.2.0
@@ -3394,7 +3396,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ws@npm:^8.0.0":
+"@types/ws@npm:^8.0.0, @types/ws@npm:^8.18.1":
   version: 8.18.1
   resolution: "@types/ws@npm:8.18.1"
   dependencies:

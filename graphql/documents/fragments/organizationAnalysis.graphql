@@ -1,0 +1,13 @@
+fragment OrganizationAnalysisFields on OrganizationAnalysis {
+  id
+  domain
+  status
+  lastAnalyzedAtEpochMs
+  data {
+    ...AnalysisResultDataFields
+  }
+  owner
+  version
+  createdAtEpochMs
+  updatedAtEpochMs
+}

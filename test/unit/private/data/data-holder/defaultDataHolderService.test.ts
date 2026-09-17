@@ -125,6 +125,65 @@ describe('DefaultDataHolderService Test Suite', () => {
     })
   })
 
+  describe('listScanSummaries', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.listDataHolderScanSummaries(anything())).thenResolve({
+        items: [GraphQLDataFactory.dataHolderScanSummary],
+        nextToken: 'nextToken',
+      })
+
+      const result = await instanceUnderTest.listScanSummaries({
+        dataHolderId: 'testId',
+        limit: 1,
+        nextToken: 'inputNextToken',
+      })
+
+      expect(result).toStrictEqual({
+        scanSummaries: [EntityDataFactory.dataHolderScanSummary],
+        nextToken: 'nextToken',
+      })
+      const [inputArg] = capture(
+        mockAppSync.listDataHolderScanSummaries,
+      ).first()
+      expect(inputArg).toStrictEqual({
+        dataHolderId: 'testId',
+        limit: 1,
+        nextToken: 'inputNextToken',
+      })
+      verify(mockAppSync.listDataHolderScanSummaries(anything())).once()
+    })
+
+    it('returns empty list when appSync returns no items', async () => {
+      when(mockAppSync.listDataHolderScanSummaries(anything())).thenResolve({
+        items: [],
+        nextToken: undefined,
+      })
+
+      const result = await instanceUnderTest.listScanSummaries({
+        dataHolderId: 'testId',
+      })
+
+      expect(result).toStrictEqual({
+        scanSummaries: [],
+        nextToken: undefined,
+      })
+      verify(mockAppSync.listDataHolderScanSummaries(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.listDataHolderScanSummaries(anything())).thenReject(
+        new Error('GraphQL error'),
+      )
+
+      await expect(
+        instanceUnderTest.listScanSummaries({
+          dataHolderId: 'testId',
+        }),
+      ).rejects.toThrow('GraphQL error')
+      verify(mockAppSync.listDataHolderScanSummaries(anything())).once()
+    })
+  })
+
   describe('subscribe', () => {
     const mockDataHolderSubscriber: DataHolderSubscriber = {
       dataHoldersUpdated: vi.fn(),

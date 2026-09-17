@@ -4,6 +4,7 @@ fragment VirtualPresenceFields on VirtualPresence {
   identifier
   state
   lastScannedAtEpochMs
+  lastScanFailureReason
   owner
   version
   createdAtEpochMs

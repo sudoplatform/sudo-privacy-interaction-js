@@ -80,10 +80,25 @@ export interface AnalysisResultDataEntity {
  * @interface PrivacyScoreEntity
  * @property {number} score Numeric score (0-100). Higher is better.
  * @property {ScoreContributionEntity[]} breakdown Breakdown of how each aspect contributed to the score.
+ * @property {ScoreCoverageEntity} coverage How much of the scoring-relevant input had a known value.
  */
 export interface PrivacyScoreEntity {
   score: number
   breakdown: ScoreContributionEntity[]
+  coverage: ScoreCoverageEntity
+}
+
+/**
+ * How much of the scoring-relevant input had a known value. A low ratio means the
+ * score rests on few known signals and should be treated as lower-confidence.
+ *
+ * @interface ScoreCoverageEntity
+ * @property {number} evaluated Scoring aspects with a known value.
+ * @property {number} total Total scoring aspects the calculator considers.
+ */
+export interface ScoreCoverageEntity {
+  evaluated: number
+  total: number
 }
 
 /**

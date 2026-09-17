@@ -11,9 +11,13 @@ import { AnalysisResultTransformer } from '../private/data/analysis-result/trans
 import { ApiClient } from '../private/data/common/apiClient'
 import { PrivateSudoPrivacyInteractionClientOptions } from '../private/data/common/privateSudoPrivacyInteractionClientOptions'
 import { DefaultDataHolderService } from '../private/data/data-holder/defaultDataHolderService'
+import { DataHolderScanSummaryTransformer } from '../private/data/data-holder/transformer/dataHolderScanSummaryTransformer'
 import { DataHolderTransformer } from '../private/data/data-holder/transformer/dataHolderTransformer'
 import { DefaultProviderConfigurationService } from '../private/data/provider-configuration/defaultProviderConfigurationService'
 import { ProviderConfigurationTransformer } from '../private/data/provider-configuration/transformer/providerConfigurationTransformer'
+import { DefaultOrganizationAnalysisService } from '../private/data/organization-analysis/defaultOrganizationAnalysisService'
+import { OrganizationAnalysisModeTransformer } from '../private/data/organization-analysis/transformer/organizationAnalysisModeTransformer'
+import { OrganizationAnalysisTransformer } from '../private/data/organization-analysis/transformer/organizationAnalysisTransformer'
 import { DefaultVirtualPresenceService } from '../private/data/virtual-presence/defaultVirtualPresenceService'
 import { RelationshipProviderTransformer } from '../private/data/virtual-presence/transformer/relationshipProviderTransformer'
 import { VirtualPresenceTransformer } from '../private/data/virtual-presence/transformer/virtualPresenceTransformer'
@@ -22,7 +26,9 @@ import { ListAnalysisResultsUseCase } from '../private/domain/use-cases/analysis
 import { SubscribeToAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/subscribeToAnalysisResultUseCase'
 import { UnsubscribeFromAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/unsubscribeFromAnalysisResultUseCase'
 import { GetProviderConfigurationUseCase } from '../private/domain/use-cases/configuration/getProviderConfigurationUseCase'
+import { GetOrganizationAnalysisUseCase } from '../private/domain/use-cases/organization-analysis/getOrganizationAnalysisUseCase'
 import { GetDataHolderUseCase } from '../private/domain/use-cases/data-holder/getDataHolderUseCase'
+import { ListDataHolderScanSummariesUseCase } from '../private/domain/use-cases/data-holder/listDataHolderScanSummariesUseCase'
 import { ListDataHoldersUseCase } from '../private/domain/use-cases/data-holder/listDataHoldersUseCase'
 import { SubscribeToDataHoldersUseCase } from '../private/domain/use-cases/data-holder/subscribeToDataHoldersUseCase'
 import { UnsubscribeFromDataHoldersUseCase } from '../private/domain/use-cases/data-holder/unsubscribeFromDataHoldersUseCase'
@@ -36,7 +42,10 @@ import { UnsubscribeFromVirtualPresenceUseCase } from '../private/domain/use-cas
 import {
   ConnectVirtualPresenceWithAuthCodeInput,
   ConnectVirtualPresenceWithRefreshTokenInput,
+  GetDataHolderOptions,
+  GetOrganizationAnalysisInput,
   ListAnalysisResultsInput,
+  ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
   ListVirtualPresencesInput,
   RescanVirtualPresenceInput,
@@ -49,7 +58,9 @@ import {
   AnalysisResult,
   AnalysisResultSubscriber,
   DataHolder,
+  DataHolderScanSummary,
   DataHolderSubscriber,
+  OrganizationAnalysis,
   ProviderConfiguration,
   VirtualPresence,
   VirtualPresenceSubscriber,
@@ -62,11 +73,15 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
   private readonly virtualPresenceService: DefaultVirtualPresenceService
   private readonly dataHolderService: DefaultDataHolderService
   private readonly analysisResultService: DefaultAnalysisResultService
+  private readonly organizationAnalysisService: DefaultOrganizationAnalysisService
   private readonly providerConfigurationTransformer: ProviderConfigurationTransformer
   private readonly virtualPresenceTransformer: VirtualPresenceTransformer
   private readonly relationshipProviderTransformer: RelationshipProviderTransformer
   private readonly dataHolderTransformer: DataHolderTransformer
+  private readonly dataHolderScanSummaryTransformer: DataHolderScanSummaryTransformer
   private readonly analysisResultTransformer: AnalysisResultTransformer
+  private readonly organizationAnalysisTransformer: OrganizationAnalysisTransformer
+  private readonly organizationAnalysisModeTransformer: OrganizationAnalysisModeTransformer
   private readonly log: Logger
 
   public constructor(opts: SudoPrivacyInteractionClientOptions) {
@@ -87,13 +102,21 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     this.analysisResultService = new DefaultAnalysisResultService(
       this.apiClient,
     )
+    this.organizationAnalysisService = new DefaultOrganizationAnalysisService(
+      this.apiClient,
+    )
 
     this.providerConfigurationTransformer =
       new ProviderConfigurationTransformer()
     this.virtualPresenceTransformer = new VirtualPresenceTransformer()
     this.relationshipProviderTransformer = new RelationshipProviderTransformer()
     this.dataHolderTransformer = new DataHolderTransformer()
+    this.dataHolderScanSummaryTransformer =
+      new DataHolderScanSummaryTransformer()
     this.analysisResultTransformer = new AnalysisResultTransformer()
+    this.organizationAnalysisTransformer = new OrganizationAnalysisTransformer()
+    this.organizationAnalysisModeTransformer =
+      new OrganizationAnalysisModeTransformer()
   }
 
   public async getProviderConfiguration(): Promise<ProviderConfiguration[]> {
@@ -210,14 +233,58 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     useCase.execute(subscriptionId)
   }
 
-  public async getDataHolder(id: string): Promise<DataHolder | undefined> {
-    this.log.debug(this.getDataHolder.name, { id })
-    const useCase = new GetDataHolderUseCase(this.dataHolderService)
-    const result = await useCase.execute(id)
-    if (!result) {
+  public async getDataHolder(
+    id: string,
+    options?: GetDataHolderOptions,
+  ): Promise<DataHolder | undefined> {
+    this.log.debug(this.getDataHolder.name, { id, options })
+    const includeScanSummary = options?.includeScanSummary ?? true
+
+    const getDataHolderUseCase = new GetDataHolderUseCase(
+      this.dataHolderService,
+    )
+
+    // Fetch the data holder and (optionally) its latest scan summary concurrently
+    // to minimise latency. The scan summary is a best-effort convenience: if it
+    // fails, the data holder is still returned without a `latestScanSummary`.
+    const [dataHolderOutcome, scanSummariesOutcome] = await Promise.allSettled([
+      getDataHolderUseCase.execute(id),
+      includeScanSummary
+        ? new ListDataHolderScanSummariesUseCase(
+            this.dataHolderService,
+          ).execute({ dataHolderId: id, limit: 1 })
+        : Promise.resolve(undefined),
+    ])
+
+    // The data holder is the primary result; propagate its error to the caller.
+    if (dataHolderOutcome.status === 'rejected') {
+      throw dataHolderOutcome.reason
+    }
+    const dataHolderResult = dataHolderOutcome.value
+    if (!dataHolderResult) {
       return undefined
     }
-    return this.dataHolderTransformer.fromEntityToAPI(result)
+
+    const dataHolder =
+      this.dataHolderTransformer.fromEntityToAPI(dataHolderResult)
+
+    if (scanSummariesOutcome.status === 'fulfilled') {
+      const latestScanSummaryEntity =
+        scanSummariesOutcome.value?.scanSummaries[0]
+      if (latestScanSummaryEntity) {
+        dataHolder.latestScanSummary =
+          this.dataHolderScanSummaryTransformer.fromEntityToAPI(
+            latestScanSummaryEntity,
+          )
+      }
+    } else {
+      this.log.error('Failed to fetch latest scan summary for data holder', {
+        id,
+        error: scanSummariesOutcome.reason,
+      })
+    }
+
+    return dataHolder
   }
 
   public async listDataHolders(
@@ -234,6 +301,26 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       this.dataHolderTransformer.fromEntityToAPI(dataHolder),
     )
     return { items: transformedDataHolders, nextToken: resultNextToken }
+  }
+
+  public async listDataHolderScanSummaries(
+    input: ListDataHolderScanSummariesInput,
+  ): Promise<ListOutput<DataHolderScanSummary>> {
+    this.log.debug(this.listDataHolderScanSummaries.name, { input })
+    const useCase = new ListDataHolderScanSummariesUseCase(
+      this.dataHolderService,
+    )
+    const { scanSummaries, nextToken: resultNextToken } = await useCase.execute(
+      {
+        dataHolderId: input.dataHolderId,
+        limit: input.limit,
+        nextToken: input.nextToken,
+      },
+    )
+    const transformedScanSummaries = scanSummaries.map((scanSummary) =>
+      this.dataHolderScanSummaryTransformer.fromEntityToAPI(scanSummary),
+    )
+    return { items: transformedScanSummaries, nextToken: resultNextToken }
   }
 
   public async subscribeToDataHolders(
@@ -311,5 +398,24 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       this.analysisResultService,
     )
     useCase.execute(subscriptionId)
+  }
+
+  public async getOrganizationAnalysis(
+    input: GetOrganizationAnalysisInput,
+  ): Promise<OrganizationAnalysis | undefined> {
+    this.log.debug(this.getOrganizationAnalysis.name, { input })
+    const useCase = new GetOrganizationAnalysisUseCase(
+      this.organizationAnalysisService,
+    )
+    const result = await useCase.execute({
+      domain: input.domain,
+      mode: input.mode
+        ? this.organizationAnalysisModeTransformer.fromAPIToEntity(input.mode)
+        : undefined,
+    })
+    if (!result) {
+      return undefined
+    }
+    return this.organizationAnalysisTransformer.fromEntityToAPI(result)
   }
 }

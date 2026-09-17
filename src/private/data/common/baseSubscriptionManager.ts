@@ -8,6 +8,11 @@ import { DefaultLogger, Logger } from '@sudoplatform/sudo-common'
 import Observable from 'zen-observable'
 import { ConnectionState } from '../../../public/typings/subscription'
 
+/**
+ * The shape of a subscription message delivered to a subscription observer's
+ * `next` handler. Mirrors Amplify v6's `GraphqlSubscriptionMessage<T>`, whose
+ * payload is carried under `data`.
+ */
 export type SubscriptionResult<T> = { data: T }
 
 /**

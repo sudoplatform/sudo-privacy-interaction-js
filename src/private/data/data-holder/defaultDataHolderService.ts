@@ -14,15 +14,19 @@ import {
   DataHolderService,
   ListDataHoldersInput,
   ListDataHoldersOutput,
+  ListDataHolderScanSummariesInput,
+  ListDataHolderScanSummariesOutput,
   SubscribeToDataHoldersInput,
 } from '../../domain/entities/data-holder/dataHolderService'
 import { ApiClient } from '../common/apiClient'
 import { SubscriptionResult } from '../common/baseSubscriptionManager'
 import { DataHolderSubscriptionManager } from './dataHolderSubscriptionManager'
+import { DataHolderScanSummaryTransformer } from './transformer/dataHolderScanSummaryTransformer'
 import { DataHolderTransformer } from './transformer/dataHolderTransformer'
 
 export class DefaultDataHolderService implements DataHolderService {
   private readonly dataHolderTransformer: DataHolderTransformer
+  private readonly dataHolderScanSummaryTransformer: DataHolderScanSummaryTransformer
   private readonly subscriptionManager: DataHolderSubscriptionManager<
     OnDataHoldersUpdateSubscription,
     DataHolderSubscriber
@@ -30,6 +34,8 @@ export class DefaultDataHolderService implements DataHolderService {
 
   constructor(private readonly appSync: ApiClient) {
     this.dataHolderTransformer = new DataHolderTransformer()
+    this.dataHolderScanSummaryTransformer =
+      new DataHolderScanSummaryTransformer()
     this.subscriptionManager = new DataHolderSubscriptionManager<
       OnDataHoldersUpdateSubscription,
       DataHolderSubscriber
@@ -54,6 +60,19 @@ export class DefaultDataHolderService implements DataHolderService {
     }
     return {
       dataHolders,
+      nextToken: result.nextToken ?? undefined,
+    }
+  }
+
+  async listScanSummaries(
+    input: ListDataHolderScanSummariesInput,
+  ): Promise<ListDataHolderScanSummariesOutput> {
+    const result = await this.appSync.listDataHolderScanSummaries(input)
+    const scanSummaries = (result.items ?? []).map((item) =>
+      this.dataHolderScanSummaryTransformer.fromGraphQLToEntity(item),
+    )
+    return {
+      scanSummaries,
       nextToken: result.nextToken ?? undefined,
     }
   }

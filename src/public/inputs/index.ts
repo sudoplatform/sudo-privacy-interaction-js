@@ -7,4 +7,5 @@
 export * from './analysisResult'
 export * from './common'
 export * from './dataHolder'
+export * from './organizationAnalysis'
 export * from './virtualPresence'

@@ -13,6 +13,8 @@ import {
   DataCategory,
   DataHolder,
   DataHolderProtectionState,
+  DataHolderScanSummary,
+  OrganizationAnalysis,
   OrganizationCategory,
   OrganizationIdentity,
   PrivacyScore,
@@ -53,6 +55,7 @@ export class APIDataFactory {
     identifier: 'test@example.com',
     state: VirtualPresenceState.Connected,
     lastScannedAt: new Date(2.0),
+    lastScanFailureReason: 'TestScanError',
   }
 
   static readonly dataHolder: DataHolder = {
@@ -74,6 +77,7 @@ export class APIDataFactory {
   static readonly privacyScore: PrivacyScore = {
     score: 67,
     breakdown: [{ aspect: 'dataCollection', contribution: -10 }],
+    coverage: { evaluated: 6, total: 8 },
   }
 
   static readonly privacySummary: PrivacySummary = {
@@ -152,5 +156,33 @@ export class APIDataFactory {
     status: AnalysisResultStatus.Pending,
     lastAnalyzedAt: new Date(4.0),
     data: undefined,
+  }
+
+  static readonly dataHolderScanSummary: DataHolderScanSummary = {
+    dataHolderId: 'testId',
+    owner: 'testOwner',
+    scannedAt: new Date(5.0),
+    scanRangeFrom: new Date(1.0),
+    scanRangeTo: new Date(5.0),
+    emailCount: 100,
+    readCount: 60,
+    readRate: 0.6,
+    marketingEmailCount: 40,
+    marketingEmailOpened: 10,
+    marketingOpenRate: 0.25,
+    categoryBreakdown: { promotions: 30, updates: 10 },
+    uncategorizedCount: 5,
+  }
+
+  static readonly organizationAnalysis: OrganizationAnalysis = {
+    id: 'example.com',
+    domain: 'example.com',
+    status: AnalysisResultStatus.Complete,
+    lastAnalyzedAt: new Date(4.0),
+    data: APIDataFactory.analysisResultData,
+    owner: 'testOwner',
+    version: 1,
+    createdAt: new Date(1.0),
+    updatedAt: new Date(2.0),
   }
 }

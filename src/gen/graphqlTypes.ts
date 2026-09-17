@@ -164,6 +164,27 @@ export type DataHolderConnection = {
 export type DataHolderProtectionState =
   'ACTION_REQUESTED' | 'MONITORED' | 'RESOLVED' | '%future added value'
 
+export type DataHolderScanSummary = {
+  categoryBreakdown: Scalars['AWSJSON']['output']
+  dataHolderId: Scalars['ID']['output']
+  emailCount: Scalars['Int']['output']
+  marketingEmailCount: Scalars['Int']['output']
+  marketingEmailOpened: Scalars['Int']['output']
+  marketingOpenRate: Scalars['Float']['output']
+  owner: Scalars['ID']['output']
+  readCount: Scalars['Int']['output']
+  readRate: Scalars['Float']['output']
+  scanRangeFromEpochMs: Scalars['Float']['output']
+  scanRangeToEpochMs: Scalars['Float']['output']
+  scannedAtEpochMs: Scalars['Float']['output']
+  uncategorizedCount: Scalars['Int']['output']
+}
+
+export type DataHolderScanSummaryConnection = {
+  items: Array<DataHolderScanSummary>
+  nextToken?: Maybe<Scalars['String']['output']>
+}
+
 export type DataHolderUpdateItem = {
   complianceConcern: Scalars['Boolean']['output']
   createdAtEpochMs: Scalars['Float']['output']
@@ -217,6 +238,21 @@ export type MutationRescanVirtualPresenceArgs = {
   options?: InputMaybe<ScanOptionsInput>
 }
 
+export type OrganizationAnalysis = {
+  createdAtEpochMs: Scalars['Float']['output']
+  data?: Maybe<AnalysisResultData>
+  domain: Scalars['String']['output']
+  id: Scalars['ID']['output']
+  lastAnalyzedAtEpochMs: Scalars['Float']['output']
+  owner: Scalars['ID']['output']
+  status: AnalysisResultStatus
+  updatedAtEpochMs: Scalars['Float']['output']
+  version: Scalars['Int']['output']
+}
+
+export type OrganizationAnalysisMode =
+  'ANALYZE' | 'FETCH' | '%future added value'
+
 export type OrganizationCategory =
   | 'Automotive'
   | 'Communications'
@@ -258,6 +294,7 @@ export type OrganizationIdentity = {
 
 export type PrivacyScore = {
   breakdown: Array<ScoreContribution>
+  coverage: ScoreCoverage
   score: Scalars['Float']['output']
 }
 
@@ -279,12 +316,21 @@ export type Query = {
   /** Get a single data holder by ID */
   getDataHolder?: Maybe<DataHolder>
   /**
+   * Analyze (read-through) and return the shared, organization-generic analysis
+   * for a domain. Returns PENDING when an asynchronous source is still resolving;
+   * re-query for the terminal result. When mode is omitted, the behaviour is
+   * ANALYZE.
+   */
+  getOrganizationAnalysis?: Maybe<OrganizationAnalysis>
+  /**
    * Get the opaque provider configuration required by consumers to support
    * the provider OAuth flow.
    */
   getProviderConfiguration: ProviderConfiguration
   /** List analysis results for a virtual presence. */
   listAnalysisResults: AnalysisResultConnection
+  /** List scan summaries for a data holder (most recent first) */
+  listDataHolderScanSummaries: DataHolderScanSummaryConnection
   /** List data holders by virtual presence */
   listDataHolders: DataHolderConnection
   /** List virtual presences for the authenticated user */
@@ -299,10 +345,21 @@ export type QueryGetDataHolderArgs = {
   id: Scalars['ID']['input']
 }
 
+export type QueryGetOrganizationAnalysisArgs = {
+  domain: Scalars['String']['input']
+  mode?: InputMaybe<OrganizationAnalysisMode>
+}
+
 export type QueryListAnalysisResultsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>
   nextToken?: InputMaybe<Scalars['String']['input']>
   virtualPresenceId: Scalars['ID']['input']
+}
+
+export type QueryListDataHolderScanSummariesArgs = {
+  dataHolderId: Scalars['ID']['input']
+  limit?: InputMaybe<Scalars['Int']['input']>
+  nextToken?: InputMaybe<Scalars['String']['input']>
 }
 
 export type QueryListDataHoldersArgs = {
@@ -361,6 +418,11 @@ export type ScoreContribution = {
   contribution: Scalars['Float']['output']
 }
 
+export type ScoreCoverage = {
+  evaluated: Scalars['Int']['output']
+  total: Scalars['Int']['output']
+}
+
 export type ShareStyle =
   | 'INFERENCE_SHARED'
   | 'NONE'
@@ -405,6 +467,7 @@ export type VirtualPresence = {
   createdAtEpochMs: Scalars['Float']['output']
   id: Scalars['ID']['output']
   identifier: Scalars['String']['output']
+  lastScanFailureReason?: Maybe<Scalars['String']['output']>
   lastScannedAtEpochMs: Scalars['Float']['output']
   owner: Scalars['ID']['output']
   providerType: ProviderType
@@ -427,6 +490,61 @@ export type VirtualPresenceState =
   | 'SCANNING'
   | '%future added value'
 
+export type AnalysisResultDataFieldsFragment = {
+  attribution: Array<string>
+  privacyScore?: {
+    score: number
+    breakdown: Array<{ aspect: string; contribution: number }>
+    coverage: { evaluated: number; total: number }
+  } | null
+  privacySummary: {
+    bulletPoints: Array<string>
+    sourceUrl: string
+    sourceLastUpdated?: string | null
+  }
+  categories: Array<{
+    category: DataCategory
+    collected: SignalValue
+    dataLabels: Array<string>
+    sharedWithThirdParties: ShareStyle
+    monetized: SignalValue
+    retained: SignalValue
+    userCanOptOut: SignalValue
+    requiredForService?: SignalValue | null
+    requiredForLaw?: SignalValue | null
+    retention?: {
+      style: RetentionStyle
+      timeInDays?: number | null
+      additionalInfo?: string | null
+    } | null
+  }>
+  capabilities: {
+    supportsAccountCreation: SignalValue
+    supportsAccountDeletion: SignalValue
+    supportsDataDeletionRequests: SignalValue
+    supportsDataExport: SignalValue
+    supportsSubscriptions: SignalValue
+    sellsPersonalInformation: SignalValue
+    usesCookiesOrTracking: SignalValue
+    supportsTwoFactorAuth: SignalValue
+  }
+  riskIndicators: {
+    dataCollectionBreadth: number
+    collectsSensitiveDataForNonEssentialPurposes: SignalValue
+    sellsPersonalInformation: SignalValue
+    maxRetentionDays?: number | null
+    hasIndefiniteRetention: SignalValue
+    encryptionPractices: SignalValue
+    breachRisk: SignalValue
+  }
+  organizationIdentity?: {
+    brandName?: string | null
+    companyName?: string | null
+    primaryCategory?: OrganizationCategory | null
+    categories: Array<OrganizationCategory>
+  } | null
+}
+
 export type AnalysisResultFieldsFragment = {
   id: string
   virtualPresenceId: string
@@ -442,6 +560,7 @@ export type AnalysisResultFieldsFragment = {
     privacyScore?: {
       score: number
       breakdown: Array<{ aspect: string; contribution: number }>
+      coverage: { evaluated: number; total: number }
     } | null
     privacySummary: {
       bulletPoints: Array<string>
@@ -506,12 +625,94 @@ export type DataHolderFieldsFragment = {
   updatedAtEpochMs: number
 }
 
+export type DataHolderScanSummaryFieldsFragment = {
+  dataHolderId: string
+  owner: string
+  scannedAtEpochMs: number
+  scanRangeFromEpochMs: number
+  scanRangeToEpochMs: number
+  emailCount: number
+  readCount: number
+  readRate: number
+  marketingEmailCount: number
+  marketingEmailOpened: number
+  marketingOpenRate: number
+  categoryBreakdown: any
+  uncategorizedCount: number
+}
+
+export type OrganizationAnalysisFieldsFragment = {
+  id: string
+  domain: string
+  status: AnalysisResultStatus
+  lastAnalyzedAtEpochMs: number
+  owner: string
+  version: number
+  createdAtEpochMs: number
+  updatedAtEpochMs: number
+  data?: {
+    attribution: Array<string>
+    privacyScore?: {
+      score: number
+      breakdown: Array<{ aspect: string; contribution: number }>
+      coverage: { evaluated: number; total: number }
+    } | null
+    privacySummary: {
+      bulletPoints: Array<string>
+      sourceUrl: string
+      sourceLastUpdated?: string | null
+    }
+    categories: Array<{
+      category: DataCategory
+      collected: SignalValue
+      dataLabels: Array<string>
+      sharedWithThirdParties: ShareStyle
+      monetized: SignalValue
+      retained: SignalValue
+      userCanOptOut: SignalValue
+      requiredForService?: SignalValue | null
+      requiredForLaw?: SignalValue | null
+      retention?: {
+        style: RetentionStyle
+        timeInDays?: number | null
+        additionalInfo?: string | null
+      } | null
+    }>
+    capabilities: {
+      supportsAccountCreation: SignalValue
+      supportsAccountDeletion: SignalValue
+      supportsDataDeletionRequests: SignalValue
+      supportsDataExport: SignalValue
+      supportsSubscriptions: SignalValue
+      sellsPersonalInformation: SignalValue
+      usesCookiesOrTracking: SignalValue
+      supportsTwoFactorAuth: SignalValue
+    }
+    riskIndicators: {
+      dataCollectionBreadth: number
+      collectsSensitiveDataForNonEssentialPurposes: SignalValue
+      sellsPersonalInformation: SignalValue
+      maxRetentionDays?: number | null
+      hasIndefiniteRetention: SignalValue
+      encryptionPractices: SignalValue
+      breachRisk: SignalValue
+    }
+    organizationIdentity?: {
+      brandName?: string | null
+      companyName?: string | null
+      primaryCategory?: OrganizationCategory | null
+      categories: Array<OrganizationCategory>
+    } | null
+  } | null
+}
+
 export type VirtualPresenceFieldsFragment = {
   id: string
   providerType: ProviderType
   identifier: string
   state: VirtualPresenceState
   lastScannedAtEpochMs: number
+  lastScanFailureReason?: string | null
   owner: string
   version: number
   createdAtEpochMs: number
@@ -529,6 +730,7 @@ export type ConnectVirtualPresenceMutation = {
     identifier: string
     state: VirtualPresenceState
     lastScannedAtEpochMs: number
+    lastScanFailureReason?: string | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -547,6 +749,7 @@ export type DisconnectVirtualPresenceMutation = {
     identifier: string
     state: VirtualPresenceState
     lastScannedAtEpochMs: number
+    lastScanFailureReason?: string | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -566,6 +769,7 @@ export type RescanVirtualPresenceMutation = {
     identifier: string
     state: VirtualPresenceState
     lastScannedAtEpochMs: number
+    lastScanFailureReason?: string | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -594,6 +798,7 @@ export type ListVirtualPresencesQuery = {
       identifier: string
       state: VirtualPresenceState
       lastScannedAtEpochMs: number
+      lastScanFailureReason?: string | null
       owner: string
       version: number
       createdAtEpochMs: number
@@ -667,6 +872,79 @@ export type GetAnalysisResultQuery = {
       privacyScore?: {
         score: number
         breakdown: Array<{ aspect: string; contribution: number }>
+        coverage: { evaluated: number; total: number }
+      } | null
+      privacySummary: {
+        bulletPoints: Array<string>
+        sourceUrl: string
+        sourceLastUpdated?: string | null
+      }
+      categories: Array<{
+        category: DataCategory
+        collected: SignalValue
+        dataLabels: Array<string>
+        sharedWithThirdParties: ShareStyle
+        monetized: SignalValue
+        retained: SignalValue
+        userCanOptOut: SignalValue
+        requiredForService?: SignalValue | null
+        requiredForLaw?: SignalValue | null
+        retention?: {
+          style: RetentionStyle
+          timeInDays?: number | null
+          additionalInfo?: string | null
+        } | null
+      }>
+      capabilities: {
+        supportsAccountCreation: SignalValue
+        supportsAccountDeletion: SignalValue
+        supportsDataDeletionRequests: SignalValue
+        supportsDataExport: SignalValue
+        supportsSubscriptions: SignalValue
+        sellsPersonalInformation: SignalValue
+        usesCookiesOrTracking: SignalValue
+        supportsTwoFactorAuth: SignalValue
+      }
+      riskIndicators: {
+        dataCollectionBreadth: number
+        collectsSensitiveDataForNonEssentialPurposes: SignalValue
+        sellsPersonalInformation: SignalValue
+        maxRetentionDays?: number | null
+        hasIndefiniteRetention: SignalValue
+        encryptionPractices: SignalValue
+        breachRisk: SignalValue
+      }
+      organizationIdentity?: {
+        brandName?: string | null
+        companyName?: string | null
+        primaryCategory?: OrganizationCategory | null
+        categories: Array<OrganizationCategory>
+      } | null
+    } | null
+  } | null
+}
+
+export type GetOrganizationAnalysisQueryVariables = Exact<{
+  domain: Scalars['String']['input']
+  mode?: InputMaybe<OrganizationAnalysisMode>
+}>
+
+export type GetOrganizationAnalysisQuery = {
+  getOrganizationAnalysis?: {
+    id: string
+    domain: string
+    status: AnalysisResultStatus
+    lastAnalyzedAtEpochMs: number
+    owner: string
+    version: number
+    createdAtEpochMs: number
+    updatedAtEpochMs: number
+    data?: {
+      attribution: Array<string>
+      privacyScore?: {
+        score: number
+        breakdown: Array<{ aspect: string; contribution: number }>
+        coverage: { evaluated: number; total: number }
       } | null
       privacySummary: {
         bulletPoints: Array<string>
@@ -742,6 +1020,7 @@ export type ListAnalysisResultsQuery = {
         privacyScore?: {
           score: number
           breakdown: Array<{ aspect: string; contribution: number }>
+          coverage: { evaluated: number; total: number }
         } | null
         privacySummary: {
           bulletPoints: Array<string>
@@ -794,6 +1073,33 @@ export type ListAnalysisResultsQuery = {
   }
 }
 
+export type ListDataHolderScanSummariesQueryVariables = Exact<{
+  dataHolderId: Scalars['ID']['input']
+  limit?: InputMaybe<Scalars['Int']['input']>
+  nextToken?: InputMaybe<Scalars['String']['input']>
+}>
+
+export type ListDataHolderScanSummariesQuery = {
+  listDataHolderScanSummaries: {
+    nextToken?: string | null
+    items: Array<{
+      dataHolderId: string
+      owner: string
+      scannedAtEpochMs: number
+      scanRangeFromEpochMs: number
+      scanRangeToEpochMs: number
+      emailCount: number
+      readCount: number
+      readRate: number
+      marketingEmailCount: number
+      marketingEmailOpened: number
+      marketingOpenRate: number
+      categoryBreakdown: any
+      uncategorizedCount: number
+    }>
+  }
+}
+
 export type OnVirtualPresenceUpdateSubscriptionVariables = Exact<{
   owner: Scalars['ID']['input']
 }>
@@ -805,6 +1111,7 @@ export type OnVirtualPresenceUpdateSubscription = {
     identifier: string
     state: VirtualPresenceState
     lastScannedAtEpochMs: number
+    lastScanFailureReason?: string | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -853,6 +1160,226 @@ export type OnAnalysisResultUpdateSubscription = {
   } | null
 }
 
+export const AnalysisResultDataFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AnalysisResultDataFieldsFragment, unknown>
 export const AnalysisResultFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
@@ -884,241 +1411,9 @@ export const AnalysisResultFieldsFragmentDoc = {
               kind: 'SelectionSet',
               selections: [
                 {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacyScore' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'score' } },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breakdown' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'aspect' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'contribution' },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'AnalysisResultDataFields' },
                 },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacySummary' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'bulletPoints' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceUrl' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceLastUpdated' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'categories' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'category' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'collected' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataLabels' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sharedWithThirdParties' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'monetized' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retained' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retention' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'style' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'timeInDays' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'additionalInfo' },
-                            },
-                          ],
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'userCanOptOut' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForService' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForLaw' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'capabilities' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountCreation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountDeletion',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsDataDeletionRequests',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsDataExport' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsSubscriptions' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'usesCookiesOrTracking' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'riskIndicators' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataCollectionBreadth' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'collectsSensitiveDataForNonEssentialPurposes',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'maxRetentionDays' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'hasIndefiniteRetention' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'encryptionPractices' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breachRisk' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'organizationIdentity' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'brandName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'companyName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'primaryCategory' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'categories' },
-                      },
-                    ],
-                  },
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
@@ -1126,6 +1421,221 @@ export const AnalysisResultFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
           { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
           { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
         ],
       },
     },
@@ -1163,6 +1673,309 @@ export const DataHolderFieldsFragmentDoc = {
     },
   ],
 } as unknown as DocumentNode<DataHolderFieldsFragment, unknown>
+export const DataHolderScanSummaryFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'DataHolderScanSummaryFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'DataHolderScanSummary' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'scannedAtEpochMs' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'scanRangeFromEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'scanRangeToEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'emailCount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'readCount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'readRate' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'marketingEmailCount' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'marketingEmailOpened' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'marketingOpenRate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'categoryBreakdown' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'uncategorizedCount' },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<DataHolderScanSummaryFieldsFragment, unknown>
+export const OrganizationAnalysisFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'OrganizationAnalysisFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'OrganizationAnalysis' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'data' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+                },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<OrganizationAnalysisFieldsFragment, unknown>
 export const VirtualPresenceFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
@@ -1183,6 +1996,10 @@ export const VirtualPresenceFieldsFragmentDoc = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -1259,6 +2076,10 @@ export const ConnectVirtualPresenceDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -1338,6 +2159,10 @@ export const DisconnectVirtualPresenceDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -1436,6 +2261,10 @@ export const RescanVirtualPresenceDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -1553,6 +2382,10 @@ export const ListVirtualPresencesDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -1812,6 +2645,221 @@ export const GetAnalysisResultDocument = {
     },
     {
       kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
       name: { kind: 'Name', value: 'AnalysisResultFields' },
       typeCondition: {
         kind: 'NamedType',
@@ -1838,241 +2886,9 @@ export const GetAnalysisResultDocument = {
               kind: 'SelectionSet',
               selections: [
                 {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacyScore' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'score' } },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breakdown' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'aspect' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'contribution' },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'AnalysisResultDataFields' },
                 },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacySummary' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'bulletPoints' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceUrl' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceLastUpdated' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'categories' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'category' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'collected' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataLabels' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sharedWithThirdParties' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'monetized' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retained' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retention' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'style' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'timeInDays' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'additionalInfo' },
-                            },
-                          ],
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'userCanOptOut' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForService' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForLaw' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'capabilities' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountCreation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountDeletion',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsDataDeletionRequests',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsDataExport' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsSubscriptions' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'usesCookiesOrTracking' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'riskIndicators' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataCollectionBreadth' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'collectsSensitiveDataForNonEssentialPurposes',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'maxRetentionDays' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'hasIndefiniteRetention' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'encryptionPractices' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breachRisk' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'organizationIdentity' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'brandName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'companyName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'primaryCategory' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'categories' },
-                      },
-                    ],
-                  },
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
@@ -2087,6 +2903,331 @@ export const GetAnalysisResultDocument = {
 } as unknown as DocumentNode<
   GetAnalysisResultQuery,
   GetAnalysisResultQueryVariables
+>
+export const GetOrganizationAnalysisDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'GetOrganizationAnalysis' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'domain' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'String' },
+            },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'mode' } },
+          type: {
+            kind: 'NamedType',
+            name: { kind: 'Name', value: 'OrganizationAnalysisMode' },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'getOrganizationAnalysis' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'domain' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'domain' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'mode' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'mode' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'OrganizationAnalysisFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'OrganizationAnalysisFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'OrganizationAnalysis' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'data' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+                },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  GetOrganizationAnalysisQuery,
+  GetOrganizationAnalysisQueryVariables
 >
 export const ListAnalysisResultsDocument = {
   kind: 'Document',
@@ -2181,6 +3322,221 @@ export const ListAnalysisResultsDocument = {
     },
     {
       kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AnalysisResultDataFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AnalysisResultData' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacyScore' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'score' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'breakdown' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'aspect' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'contribution' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'coverage' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'evaluated' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'total' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'privacySummary' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'bulletPoints' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'sourceUrl' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sourceLastUpdated' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'categories' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'category' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'collected' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'dataLabels' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sharedWithThirdParties' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'monetized' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'retained' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'retention' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'style' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'timeInDays' },
+                      },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'additionalInfo' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'userCanOptOut' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForService' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'requiredForLaw' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'capabilities' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountCreation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsAccountDeletion' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataDeletionRequests' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsDataExport' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsSubscriptions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'usesCookiesOrTracking' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'riskIndicators' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataCollectionBreadth' },
+                },
+                {
+                  kind: 'Field',
+                  name: {
+                    kind: 'Name',
+                    value: 'collectsSensitiveDataForNonEssentialPurposes',
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'sellsPersonalInformation' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'maxRetentionDays' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'hasIndefiniteRetention' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'encryptionPractices' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'breachRisk' } },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'organizationIdentity' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'brandName' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'companyName' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'primaryCategory' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'categories' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
       name: { kind: 'Name', value: 'AnalysisResultFields' },
       typeCondition: {
         kind: 'NamedType',
@@ -2207,241 +3563,9 @@ export const ListAnalysisResultsDocument = {
               kind: 'SelectionSet',
               selections: [
                 {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacyScore' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      { kind: 'Field', name: { kind: 'Name', value: 'score' } },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breakdown' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'aspect' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'contribution' },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'AnalysisResultDataFields' },
                 },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'privacySummary' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'bulletPoints' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceUrl' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sourceLastUpdated' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'categories' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'category' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'collected' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataLabels' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'sharedWithThirdParties' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'monetized' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retained' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'retention' },
-                        selectionSet: {
-                          kind: 'SelectionSet',
-                          selections: [
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'style' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'timeInDays' },
-                            },
-                            {
-                              kind: 'Field',
-                              name: { kind: 'Name', value: 'additionalInfo' },
-                            },
-                          ],
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'userCanOptOut' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForService' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'requiredForLaw' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'capabilities' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountCreation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsAccountDeletion',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'supportsDataDeletionRequests',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsDataExport' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsSubscriptions' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'usesCookiesOrTracking' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'riskIndicators' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'dataCollectionBreadth' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'collectsSensitiveDataForNonEssentialPurposes',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: {
-                          kind: 'Name',
-                          value: 'sellsPersonalInformation',
-                        },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'maxRetentionDays' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'hasIndefiniteRetention' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'encryptionPractices' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'breachRisk' },
-                      },
-                    ],
-                  },
-                },
-                {
-                  kind: 'Field',
-                  name: { kind: 'Name', value: 'organizationIdentity' },
-                  selectionSet: {
-                    kind: 'SelectionSet',
-                    selections: [
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'brandName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'companyName' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'primaryCategory' },
-                      },
-                      {
-                        kind: 'Field',
-                        name: { kind: 'Name', value: 'categories' },
-                      },
-                    ],
-                  },
-                },
-                { kind: 'Field', name: { kind: 'Name', value: 'attribution' } },
               ],
             },
           },
@@ -2456,6 +3580,146 @@ export const ListAnalysisResultsDocument = {
 } as unknown as DocumentNode<
   ListAnalysisResultsQuery,
   ListAnalysisResultsQueryVariables
+>
+export const ListDataHolderScanSummariesDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'ListDataHolderScanSummaries' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'dataHolderId' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'limit' },
+          },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'nextToken' },
+          },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'listDataHolderScanSummaries' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'dataHolderId' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'dataHolderId' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'limit' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'nextToken' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'nextToken' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'items' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'FragmentSpread',
+                        name: {
+                          kind: 'Name',
+                          value: 'DataHolderScanSummaryFields',
+                        },
+                      },
+                    ],
+                  },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'nextToken' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'DataHolderScanSummaryFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'DataHolderScanSummary' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'scannedAtEpochMs' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'scanRangeFromEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'scanRangeToEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'emailCount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'readCount' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'readRate' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'marketingEmailCount' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'marketingEmailOpened' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'marketingOpenRate' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'categoryBreakdown' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'uncategorizedCount' },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ListDataHolderScanSummariesQuery,
+  ListDataHolderScanSummariesQueryVariables
 >
 export const OnVirtualPresenceUpdateDocument = {
   kind: 'Document',
@@ -2523,6 +3787,10 @@ export const OnVirtualPresenceUpdateDocument = {
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },

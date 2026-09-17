@@ -1,3 +1,64 @@
+fragment AnalysisResultDataFields on AnalysisResultData {
+  privacyScore {
+    score
+    breakdown {
+      aspect
+      contribution
+    }
+    coverage {
+      evaluated
+      total
+    }
+  }
+  privacySummary {
+    bulletPoints
+    sourceUrl
+    sourceLastUpdated
+  }
+  categories {
+    category
+    collected
+    dataLabels
+    sharedWithThirdParties
+    monetized
+    retained
+    retention {
+      style
+      timeInDays
+      additionalInfo
+    }
+    userCanOptOut
+    requiredForService
+    requiredForLaw
+  }
+  capabilities {
+    supportsAccountCreation
+    supportsAccountDeletion
+    supportsDataDeletionRequests
+    supportsDataExport
+    supportsSubscriptions
+    sellsPersonalInformation
+    usesCookiesOrTracking
+    supportsTwoFactorAuth
+  }
+  riskIndicators {
+    dataCollectionBreadth
+    collectsSensitiveDataForNonEssentialPurposes
+    sellsPersonalInformation
+    maxRetentionDays
+    hasIndefiniteRetention
+    encryptionPractices
+    breachRisk
+  }
+  organizationIdentity {
+    brandName
+    companyName
+    primaryCategory
+    categories
+  }
+  attribution
+}
+
 fragment AnalysisResultFields on AnalysisResult {
   id
   virtualPresenceId
@@ -5,60 +66,7 @@ fragment AnalysisResultFields on AnalysisResult {
   status
   lastAnalyzedAtEpochMs
   data {
-    privacyScore {
-      score
-      breakdown {
-        aspect
-        contribution
-      }
-    }
-    privacySummary {
-      bulletPoints
-      sourceUrl
-      sourceLastUpdated
-    }
-    categories {
-      category
-      collected
-      dataLabels
-      sharedWithThirdParties
-      monetized
-      retained
-      retention {
-        style
-        timeInDays
-        additionalInfo
-      }
-      userCanOptOut
-      requiredForService
-      requiredForLaw
-    }
-    capabilities {
-      supportsAccountCreation
-      supportsAccountDeletion
-      supportsDataDeletionRequests
-      supportsDataExport
-      supportsSubscriptions
-      sellsPersonalInformation
-      usesCookiesOrTracking
-      supportsTwoFactorAuth
-    }
-    riskIndicators {
-      dataCollectionBreadth
-      collectsSensitiveDataForNonEssentialPurposes
-      sellsPersonalInformation
-      maxRetentionDays
-      hasIndefiniteRetention
-      encryptionPractices
-      breachRisk
-    }
-    organizationIdentity {
-      brandName
-      companyName
-      primaryCategory
-      categories
-    }
-    attribution
+    ...AnalysisResultDataFields
   }
   owner
   version

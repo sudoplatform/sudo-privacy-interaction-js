@@ -6,7 +6,7 @@
 
 export * from './analysisResult'
 export * from './dataHolder'
+export * from './organizationAnalysis'
 export * from './providerConfiguration'
 export * from './subscription'
 export * from './virtualPresence'
-

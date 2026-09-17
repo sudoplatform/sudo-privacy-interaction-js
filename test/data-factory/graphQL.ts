@@ -8,9 +8,11 @@ import { Base64 } from '@sudoplatform/sudo-common'
 import {
   AnalysisResultFieldsFragment,
   DataHolderFieldsFragment,
+  DataHolderScanSummaryFieldsFragment,
   CapabilitySignals as GraphQLCapabilitySignals,
   CategorySignals as GraphQLCategorySignals,
   OrganizationIdentity as GraphQLOrganizationIdentity,
+  OrganizationAnalysisFieldsFragment,
   PrivacyScore as GraphQLPrivacyScore,
   PrivacySummary as GraphQLPrivacySummary,
   ProviderConfiguration as GraphQLProviderConfiguration,
@@ -48,6 +50,7 @@ export class GraphQLDataFactory {
     identifier: 'test@example.com',
     state: 'CONNECTED',
     lastScannedAtEpochMs: 2.0,
+    lastScanFailureReason: 'TestScanError',
   }
 
   static readonly dataHolder: DataHolderFieldsFragment = {
@@ -69,6 +72,7 @@ export class GraphQLDataFactory {
   static readonly privacyScore: GraphQLPrivacyScore = {
     score: 67,
     breakdown: [{ aspect: 'dataCollection', contribution: -10 }],
+    coverage: { evaluated: 6, total: 8 },
   }
 
   static readonly privacySummary: GraphQLPrivacySummary = {
@@ -142,5 +146,33 @@ export class GraphQLDataFactory {
     status: 'PENDING',
     lastAnalyzedAtEpochMs: 4.0,
     data: undefined,
+  }
+
+  static readonly dataHolderScanSummary: DataHolderScanSummaryFieldsFragment = {
+    dataHolderId: 'testId',
+    owner: 'testOwner',
+    scannedAtEpochMs: 5.0,
+    scanRangeFromEpochMs: 1.0,
+    scanRangeToEpochMs: 5.0,
+    emailCount: 100,
+    readCount: 60,
+    readRate: 0.6,
+    marketingEmailCount: 40,
+    marketingEmailOpened: 10,
+    marketingOpenRate: 0.25,
+    categoryBreakdown: JSON.stringify({ promotions: 30, updates: 10 }),
+    uncategorizedCount: 5,
+  }
+
+  static readonly organizationAnalysis: OrganizationAnalysisFieldsFragment = {
+    id: 'example.com',
+    domain: 'example.com',
+    status: 'COMPLETE',
+    lastAnalyzedAtEpochMs: 4.0,
+    data: GraphQLDataFactory.analysisResult.data,
+    owner: 'testOwner',
+    version: 1,
+    createdAtEpochMs: 1.0,
+    updatedAtEpochMs: 2.0,
   }
 }

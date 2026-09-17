@@ -9,7 +9,10 @@ import { SudoUserClient } from '@sudoplatform/sudo-user'
 import {
   ConnectVirtualPresenceWithAuthCodeInput,
   ConnectVirtualPresenceWithRefreshTokenInput,
+  GetDataHolderOptions,
+  GetOrganizationAnalysisInput,
   ListAnalysisResultsInput,
+  ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
   ListVirtualPresencesInput,
   RescanVirtualPresenceInput,
@@ -18,7 +21,9 @@ import {
   AnalysisResult,
   AnalysisResultSubscriber,
   DataHolder,
+  DataHolderScanSummary,
   DataHolderSubscriber,
+  OrganizationAnalysis,
   ProviderConfiguration,
   VirtualPresence,
   VirtualPresenceSubscriber,
@@ -105,9 +110,15 @@ export interface SudoPrivacyInteractionClient {
    * Retrieve a single data holder by ID.
    *
    * @param {string} id The unique identifier of the data holder.
+   * @param {GetDataHolderOptions} options Optional settings controlling what is returned.
+   *  By default the most recent scan summary is fetched concurrently and attached as
+   *  `latestScanSummary`.
    * @returns {DataHolder | undefined} The data holder, or undefined if not found.
    */
-  getDataHolder(id: string): Promise<DataHolder | undefined>
+  getDataHolder(
+    id: string,
+    options?: GetDataHolderOptions,
+  ): Promise<DataHolder | undefined>
 
   /**
    * List data holders associated with a virtual presence.
@@ -116,6 +127,18 @@ export interface SudoPrivacyInteractionClient {
    * @returns {ListOutput<DataHolder>} A list of data holders matching the search criteria.
    */
   listDataHolders(input: ListDataHoldersInput): Promise<ListOutput<DataHolder>>
+
+  /**
+   * List scan summaries associated with a data holder, most recent first.
+   *
+   * @param {ListDataHolderScanSummariesInput} input Parameters used to retrieve a list
+   *  of scan summaries.
+   * @returns {ListOutput<DataHolderScanSummary>} A list of scan summaries matching the
+   *  search criteria.
+   */
+  listDataHolderScanSummaries(
+    input: ListDataHolderScanSummariesInput,
+  ): Promise<ListOutput<DataHolderScanSummary>>
 
   /**
    * Subscribe to data holder state events. Emitted when data holders are discovered
@@ -174,6 +197,19 @@ export interface SudoPrivacyInteractionClient {
    * @param {string} subscriptionId The subscription identifier to unsubscribe.
    */
   unsubscribeFromAnalysisResult(subscriptionId: string): void
+
+  /**
+   * Analyze (read-through) and return the shared, organization-generic analysis for a domain.
+   *
+   * Returns a result with a `Pending` status when an asynchronous source is still resolving;
+   * re-query for the terminal result. When `mode` is omitted, the backend behaves as `Analyze`.
+   *
+   * @param {GetOrganizationAnalysisInput} input Parameters used to obtain the analysis.
+   * @returns {OrganizationAnalysis | undefined} The organization analysis, or undefined if not found.
+   */
+  getOrganizationAnalysis(
+    input: GetOrganizationAnalysisInput,
+  ): Promise<OrganizationAnalysis | undefined>
 }
 
 export type SudoPrivacyInteractionClientOptions = {

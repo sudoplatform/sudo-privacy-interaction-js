@@ -42,6 +42,12 @@ query GetAnalysisResult($id: ID!) {
   }
 }
 
+query GetOrganizationAnalysis($domain: String!, $mode: OrganizationAnalysisMode) {
+  getOrganizationAnalysis(domain: $domain, mode: $mode) {
+    ...OrganizationAnalysisFields
+  }
+}
+
 query ListAnalysisResults(
   $virtualPresenceId: ID!
   $limit: Int
@@ -54,6 +60,23 @@ query ListAnalysisResults(
   ) {
     items {
       ...AnalysisResultFields
+    }
+    nextToken
+  }
+}
+
+query ListDataHolderScanSummaries(
+  $dataHolderId: ID!
+  $limit: Int
+  $nextToken: String
+) {
+  listDataHolderScanSummaries(
+    dataHolderId: $dataHolderId
+    limit: $limit
+    nextToken: $nextToken
+  ) {
+    items {
+      ...DataHolderScanSummaryFields
     }
     nextToken
   }

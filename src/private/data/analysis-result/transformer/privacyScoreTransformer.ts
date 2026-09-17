@@ -16,6 +16,10 @@ export class PrivacyScoreTransformer {
         aspect: b.aspect,
         contribution: b.contribution,
       })),
+      coverage: {
+        evaluated: data.coverage.evaluated,
+        total: data.coverage.total,
+      },
     }
   }
 
@@ -26,6 +30,10 @@ export class PrivacyScoreTransformer {
         aspect: b.aspect,
         contribution: b.contribution,
       })),
+      coverage: {
+        evaluated: entity.coverage.evaluated,
+        total: entity.coverage.total,
+      },
     }
   }
 }

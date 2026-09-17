@@ -1,0 +1,15 @@
+fragment DataHolderScanSummaryFields on DataHolderScanSummary {
+  dataHolderId
+  owner
+  scannedAtEpochMs
+  scanRangeFromEpochMs
+  scanRangeToEpochMs
+  emailCount
+  readCount
+  readRate
+  marketingEmailCount
+  marketingEmailOpened
+  marketingOpenRate
+  categoryBreakdown
+  uncategorizedCount
+}

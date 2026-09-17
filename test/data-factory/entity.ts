@@ -12,7 +12,9 @@ import {
 import {
   DataHolderEntity,
   DataHolderProtectionStateEntity,
+  DataHolderScanSummaryEntity,
 } from '../../src/private/domain/entities/data-holder/dataHolderEntity'
+import { OrganizationAnalysisEntity } from '../../src/private/domain/entities/organization-analysis/organizationAnalysisEntity'
 import { Base64 } from '@sudoplatform/sudo-common'
 import { ProviderConfigurationEntity } from '../../src/private/domain/entities/configuration/providerConfigurationEntity'
 import {
@@ -70,6 +72,7 @@ export class EntityDataFactory {
     identifier: 'test@example.com',
     state: VirtualPresenceStateEntity.Connected,
     lastScannedAt: new Date(2.0),
+    lastScanFailureReason: 'TestScanError',
   }
 
   static readonly dataHolder: DataHolderEntity = {
@@ -91,6 +94,7 @@ export class EntityDataFactory {
   static readonly privacyScore: PrivacyScoreEntity = {
     score: 67,
     breakdown: [{ aspect: 'dataCollection', contribution: -10 }],
+    coverage: { evaluated: 6, total: 8 },
   }
 
   static readonly privacySummary: PrivacySummaryEntity = {
@@ -169,5 +173,33 @@ export class EntityDataFactory {
     status: AnalysisResultStatusEntity.Pending,
     lastAnalyzedAt: new Date(4.0),
     data: undefined,
+  }
+
+  static readonly dataHolderScanSummary: DataHolderScanSummaryEntity = {
+    dataHolderId: 'testId',
+    owner: 'testOwner',
+    scannedAt: new Date(5.0),
+    scanRangeFrom: new Date(1.0),
+    scanRangeTo: new Date(5.0),
+    emailCount: 100,
+    readCount: 60,
+    readRate: 0.6,
+    marketingEmailCount: 40,
+    marketingEmailOpened: 10,
+    marketingOpenRate: 0.25,
+    categoryBreakdown: { promotions: 30, updates: 10 },
+    uncategorizedCount: 5,
+  }
+
+  static readonly organizationAnalysis: OrganizationAnalysisEntity = {
+    id: 'example.com',
+    domain: 'example.com',
+    status: AnalysisResultStatusEntity.Complete,
+    lastAnalyzedAt: new Date(4.0),
+    data: EntityDataFactory.analysisResultData,
+    owner: 'testOwner',
+    version: 1,
+    createdAt: new Date(1.0),
+    updatedAt: new Date(2.0),
   }
 }

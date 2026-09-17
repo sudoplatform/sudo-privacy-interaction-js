@@ -17,6 +17,8 @@
  * @property {string} identifier The presence identifier (e.g. email address).
  * @property {VirtualPresenceState} state The current state of the virtual presence.
  * @property {Date} lastScannedAt Date for when the virtual presence was last scanned.
+ * @property {string} lastScanFailureReason Reason the most recent completed scan failed (an error/exception name).
+ *  Undefined when the most recent completed scan succeeded (or none has completed).
  * @property {Date} createdAt Date for when the virtual presence was created.
  * @property {Date} updatedAt Date for when the virtual presence was last updated.
  */
@@ -28,6 +30,7 @@ export interface VirtualPresence {
   identifier: string
   state: VirtualPresenceState
   lastScannedAt: Date
+  lastScanFailureReason?: string
   createdAt: Date
   updatedAt: Date
 }

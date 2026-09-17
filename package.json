@@ -84,6 +84,7 @@
     "@sudoplatform/sudo-entitlements-admin": "^13.0.2",
     "@sudoplatform/sudo-user": "^17.1.1",
     "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.18.1",
     "@typescript-eslint/eslint-plugin": "^8.26.1",
     "@typescript-eslint/parser": "^8.26.1",
     "@vitest/coverage-v8": "^4.1.11",
@@ -104,7 +105,8 @@
     "typescript": "^5.9.2",
     "uuid": "^11.1.0",
     "vitest": "^4.1.11",
-    "wait-for-expect": "^4.0.0"
+    "wait-for-expect": "^4.0.0",
+    "ws": "^8.21.3"
   },
   "packageManager": "yarn@4.9.2+sha256.ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7",
   "auditSuppressions": {

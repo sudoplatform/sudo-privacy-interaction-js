@@ -106,10 +106,25 @@ export interface AnalysisResultData {
  * @interface PrivacyScore
  * @property {number} score Numeric score (0-100). Higher is better.
  * @property {ScoreContribution[]} breakdown Breakdown of how each aspect contributed to the score.
+ * @property {ScoreCoverage} coverage How much of the scoring-relevant input had a known value.
  */
 export interface PrivacyScore {
   score: number
   breakdown: ScoreContribution[]
+  coverage: ScoreCoverage
+}
+
+/**
+ * How much of the scoring-relevant input had a known value. A low ratio means the
+ * score rests on few known signals and should be treated as lower-confidence.
+ *
+ * @interface ScoreCoverage
+ * @property {number} evaluated Scoring aspects with a known value.
+ * @property {number} total Total scoring aspects the calculator considers.
+ */
+export interface ScoreCoverage {
+  evaluated: number
+  total: number
 }
 
 /**

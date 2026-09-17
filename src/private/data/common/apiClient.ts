@@ -29,6 +29,7 @@ import {
   ConnectVirtualPresenceMutationVariables,
   DataHolder,
   DataHolderConnection,
+  DataHolderScanSummaryConnection,
   DisconnectVirtualPresenceDocument,
   DisconnectVirtualPresenceMutation,
   DisconnectVirtualPresenceMutationVariables,
@@ -41,10 +42,18 @@ import {
   GetProviderConfigurationDocument,
   GetProviderConfigurationQuery,
   GetProviderConfigurationQueryVariables,
+  GetOrganizationAnalysisDocument,
+  GetOrganizationAnalysisQuery,
+  GetOrganizationAnalysisQueryVariables,
+  OrganizationAnalysis,
+  OrganizationAnalysisMode,
   ProviderConfiguration,
   ListAnalysisResultsDocument,
   ListAnalysisResultsQuery,
   ListAnalysisResultsQueryVariables,
+  ListDataHolderScanSummariesDocument,
+  ListDataHolderScanSummariesQuery,
+  ListDataHolderScanSummariesQueryVariables,
   ListDataHoldersDocument,
   ListDataHoldersQuery,
   ListDataHoldersQueryVariables,
@@ -165,6 +174,23 @@ export class ApiClient {
     return data.listDataHolders
   }
 
+  public async listDataHolderScanSummaries(input: {
+    dataHolderId: string
+    limit?: number
+    nextToken?: string
+  }): Promise<DataHolderScanSummaryConnection> {
+    const data = await this.performQuery<ListDataHolderScanSummariesQuery>({
+      query: ListDataHolderScanSummariesDocument,
+      variables: {
+        dataHolderId: input.dataHolderId,
+        limit: input.limit,
+        nextToken: input.nextToken,
+      } as ListDataHolderScanSummariesQueryVariables,
+      calleeName: this.listDataHolderScanSummaries.name,
+    })
+    return data.listDataHolderScanSummaries
+  }
+
   public async getAnalysisResult(
     id: string,
   ): Promise<AnalysisResult | undefined> {
@@ -174,6 +200,21 @@ export class ApiClient {
       calleeName: this.getAnalysisResult.name,
     })
     return data.getAnalysisResult ?? undefined
+  }
+
+  public async getOrganizationAnalysis(input: {
+    domain: string
+    mode?: OrganizationAnalysisMode
+  }): Promise<OrganizationAnalysis | undefined> {
+    const data = await this.performQuery<GetOrganizationAnalysisQuery>({
+      query: GetOrganizationAnalysisDocument,
+      variables: {
+        domain: input.domain,
+        mode: input.mode,
+      } as GetOrganizationAnalysisQueryVariables,
+      calleeName: this.getOrganizationAnalysis.name,
+    })
+    return data.getOrganizationAnalysis ?? undefined
   }
 
   public async listAnalysisResults(input: {
