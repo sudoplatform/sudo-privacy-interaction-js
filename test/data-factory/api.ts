@@ -5,9 +5,15 @@
  */
 
 import {
+  Action,
+  ActionFulfilmentMethod,
+  ActionIntent,
+  ActionOrigin,
+  ActionStatus,
   AnalysisResult,
   AnalysisResultData,
   AnalysisResultStatus,
+  AvailableAction,
   CapabilitySignals,
   CategorySignals,
   DataCategory,
@@ -184,5 +190,44 @@ export class APIDataFactory {
     version: 1,
     createdAt: new Date(1.0),
     updatedAt: new Date(2.0),
+  }
+
+  static readonly assistedPayload = {
+    toAddress: 'privacy@example.com',
+    unsubscribeUrl: 'https://example.com/unsubscribe',
+    unsubscribeMailto: 'mailto:unsubscribe@example.com',
+    contact: {
+      email: 'contact@example.com',
+      phone: '+1000000000',
+      address: '1 Example St',
+    },
+    jurisdiction: 'US-CA',
+    instructions: 'Follow the link to unsubscribe.',
+    emailTemplate: {
+      subject: 'Please delete my data',
+      body: 'Hello, please delete my data for {{fullName}}.',
+    },
+  }
+
+  static readonly action: Action = {
+    ...APIDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderId: 'testDataHolderId',
+    intent: ActionIntent.StopContact,
+    additionalInfo: undefined,
+    fulfilmentMethod: ActionFulfilmentMethod.Assisted,
+    status: ActionStatus.Pending,
+    assistedPayload: APIDataFactory.assistedPayload,
+    initiatedAt: new Date(6.0),
+    completedAt: undefined,
+  }
+
+  static readonly availableAction: AvailableAction = {
+    intent: ActionIntent.StopContact,
+    additionalInfo: undefined,
+    fulfilmentMethod: ActionFulfilmentMethod.Assisted,
+    origin: ActionOrigin.Discovery,
+    title: 'Unsubscribe',
+    description: 'Opt out of marketing communications.',
   }
 }

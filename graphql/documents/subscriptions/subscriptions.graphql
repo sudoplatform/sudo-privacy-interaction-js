@@ -36,3 +36,21 @@ subscription OnAnalysisResultUpdate($owner: ID!) {
     updatedAtEpochMs
   }
 }
+
+subscription OnActionStatusUpdate($owner: ID!) {
+  onActionStatusUpdate(owner: $owner) {
+    id
+    virtualPresenceId
+    dataHolderId
+    intent
+    additionalInfo
+    fulfilmentMethod
+    status
+    initiatedAtEpochMs
+    completedAtEpochMs
+    owner
+    version
+    createdAtEpochMs
+    updatedAtEpochMs
+  }
+}

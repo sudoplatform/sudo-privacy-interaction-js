@@ -11,15 +11,20 @@ import {
   ConnectVirtualPresenceWithRefreshTokenInput,
   GetDataHolderOptions,
   GetOrganizationAnalysisInput,
+  InitiateActionInput,
   ListAnalysisResultsInput,
+  ListAvailableActionsInput,
   ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
   ListVirtualPresencesInput,
   RescanVirtualPresenceInput,
 } from './inputs'
 import {
+  Action,
   AnalysisResult,
   AnalysisResultSubscriber,
+  ActionSubscriber,
+  AvailableAction,
   DataHolder,
   DataHolderScanSummary,
   DataHolderSubscriber,
@@ -210,6 +215,55 @@ export interface SudoPrivacyInteractionClient {
   getOrganizationAnalysis(
     input: GetOrganizationAnalysisInput,
   ): Promise<OrganizationAnalysis | undefined>
+
+  /**
+   * Initiate an action against a data holder relationship. Delegated actions are
+   * performed on the user's behalf; assisted actions return structured materials
+   * for the client to complete.
+   *
+   * @param {InitiateActionInput} input Parameters used to initiate the action.
+   * @returns {Action} The initiated action.
+   */
+  initiateAction(input: InitiateActionInput): Promise<Action>
+
+  /**
+   * Confirm that an assisted or delegated action was completed, transitioning it
+   * from `CompletedUnverified` to `CompletedVerified`.
+   *
+   * @param {string} id The unique identifier of the action to confirm.
+   * @returns {Action} The confirmed action.
+   */
+  confirmActionOutcome(id: string): Promise<Action>
+
+  /**
+   * List the actions currently available for a data holder relationship.
+   *
+   * @param {ListAvailableActionsInput} input Parameters used to list available actions.
+   * @returns {ListOutput<AvailableAction>} A list of available actions matching the
+   *  search criteria.
+   */
+  listAvailableActions(
+    input: ListAvailableActionsInput,
+  ): Promise<ListOutput<AvailableAction>>
+
+  /**
+   * Subscribe to action status events. Emitted each time an action's status changes.
+   *
+   * @param {string} subscriptionId A unique identifier for this subscription.
+   * @param {ActionSubscriber} subscriber Callback implementation to be invoked when
+   *  an action event occurs.
+   */
+  subscribeToActions(
+    subscriptionId: string,
+    subscriber: ActionSubscriber,
+  ): Promise<void>
+
+  /**
+   * Unsubscribe from action status events.
+   *
+   * @param {string} subscriptionId The subscription identifier to unsubscribe.
+   */
+  unsubscribeFromActions(subscriptionId: string): void
 }
 
 export type SudoPrivacyInteractionClientOptions = {

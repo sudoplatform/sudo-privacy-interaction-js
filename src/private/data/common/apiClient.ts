@@ -23,6 +23,11 @@ import Observable from 'zen-observable'
 import {
   AnalysisResult,
   AnalysisResultConnection,
+  Action,
+  AvailableActionConnection,
+  ConfirmActionOutcomeDocument,
+  ConfirmActionOutcomeMutation,
+  ConfirmActionOutcomeMutationVariables,
   ConnectVirtualPresenceDocument,
   ConnectVirtualPresenceInput,
   ConnectVirtualPresenceMutation,
@@ -45,12 +50,19 @@ import {
   GetOrganizationAnalysisDocument,
   GetOrganizationAnalysisQuery,
   GetOrganizationAnalysisQueryVariables,
+  InitiateActionDocument,
+  InitiateActionInput,
+  InitiateActionMutation,
+  InitiateActionMutationVariables,
   OrganizationAnalysis,
   OrganizationAnalysisMode,
   ProviderConfiguration,
   ListAnalysisResultsDocument,
   ListAnalysisResultsQuery,
   ListAnalysisResultsQueryVariables,
+  ListAvailableActionsDocument,
+  ListAvailableActionsQuery,
+  ListAvailableActionsQueryVariables,
   ListDataHolderScanSummariesDocument,
   ListDataHolderScanSummariesQuery,
   ListDataHolderScanSummariesQueryVariables,
@@ -61,6 +73,9 @@ import {
   ListVirtualPresencesInput,
   ListVirtualPresencesQuery,
   ListVirtualPresencesQueryVariables,
+  OnActionStatusUpdateDocument,
+  OnActionStatusUpdateSubscription,
+  OnActionStatusUpdateSubscriptionVariables,
   OnAnalysisResultUpdateDocument,
   OnAnalysisResultUpdateSubscription,
   OnAnalysisResultUpdateSubscriptionVariables,
@@ -234,6 +249,37 @@ export class ApiClient {
     return data.listAnalysisResults
   }
 
+  public async initiateAction(input: InitiateActionInput): Promise<Action> {
+    const data = await this.performMutation<InitiateActionMutation>({
+      mutation: InitiateActionDocument,
+      variables: { input } as InitiateActionMutationVariables,
+      calleeName: this.initiateAction.name,
+    })
+    return data.initiateAction
+  }
+
+  public async confirmActionOutcome(id: string): Promise<Action> {
+    const data = await this.performMutation<ConfirmActionOutcomeMutation>({
+      mutation: ConfirmActionOutcomeDocument,
+      variables: { id } as ConfirmActionOutcomeMutationVariables,
+      calleeName: this.confirmActionOutcome.name,
+    })
+    return data.confirmActionOutcome
+  }
+
+  public async listAvailableActions(input: {
+    dataHolderId: string
+  }): Promise<AvailableActionConnection> {
+    const data = await this.performQuery<ListAvailableActionsQuery>({
+      query: ListAvailableActionsDocument,
+      variables: {
+        dataHolderId: input.dataHolderId,
+      } as ListAvailableActionsQueryVariables,
+      calleeName: this.listAvailableActions.name,
+    })
+    return data.listAvailableActions
+  }
+
   public onVirtualPresenceUpdated(
     owner: string,
   ): Promise<
@@ -271,6 +317,18 @@ export class ApiClient {
         owner,
       } as OnAnalysisResultUpdateSubscriptionVariables,
       calleeName: this.onAnalysisResultUpdated.name,
+    })
+  }
+
+  public onActionStatusUpdated(
+    owner: string,
+  ): Promise<Observable<SubscriptionResult<OnActionStatusUpdateSubscription>>> {
+    return this.performSubscription<OnActionStatusUpdateSubscription>({
+      subscription: OnActionStatusUpdateDocument,
+      variables: {
+        owner,
+      } as OnActionStatusUpdateSubscriptionVariables,
+      calleeName: this.onActionStatusUpdated.name,
     })
   }
 

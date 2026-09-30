@@ -81,3 +81,12 @@ query ListDataHolderScanSummaries(
     nextToken
   }
 }
+
+query ListAvailableActions($dataHolderId: ID!) {
+  listAvailableActions(dataHolderId: $dataHolderId) {
+    items {
+      ...AvailableActionFields
+    }
+    nextToken
+  }
+}

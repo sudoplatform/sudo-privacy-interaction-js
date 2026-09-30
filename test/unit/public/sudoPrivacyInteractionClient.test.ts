@@ -18,12 +18,18 @@ import {
 import { v4 } from 'uuid'
 import { DefaultAnalysisResultService } from '../../../src/private/data/analysis-result/defaultAnalysisResultService'
 import { ApiClient } from '../../../src/private/data/common/apiClient'
+import { DefaultActionService } from '../../../src/private/data/action/defaultActionService'
 import { DefaultProviderConfigurationService } from '../../../src/private/data/provider-configuration/defaultProviderConfigurationService'
 import { PrivacyInteractionServiceConfig } from '../../../src/private/data/common/config'
 import { PrivateSudoPrivacyInteractionClientOptions } from '../../../src/private/data/common/privateSudoPrivacyInteractionClientOptions'
 import { DefaultDataHolderService } from '../../../src/private/data/data-holder/defaultDataHolderService'
 import { DefaultVirtualPresenceService } from '../../../src/private/data/virtual-presence/defaultVirtualPresenceService'
 import { GetAnalysisResultUseCase } from '../../../src/private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
+import { ConfirmActionOutcomeUseCase } from '../../../src/private/domain/use-cases/action/confirmActionOutcomeUseCase'
+import { InitiateActionUseCase } from '../../../src/private/domain/use-cases/action/initiateActionUseCase'
+import { ListAvailableActionsUseCase } from '../../../src/private/domain/use-cases/action/listAvailableActionsUseCase'
+import { SubscribeToActionUseCase } from '../../../src/private/domain/use-cases/action/subscribeToActionUseCase'
+import { UnsubscribeFromActionUseCase } from '../../../src/private/domain/use-cases/action/unsubscribeFromActionUseCase'
 import { GetOrganizationAnalysisUseCase } from '../../../src/private/domain/use-cases/organization-analysis/getOrganizationAnalysisUseCase'
 import { OrganizationAnalysisModeEntity } from '../../../src/private/domain/entities/organization-analysis/organizationAnalysisEntity'
 import { GetProviderConfigurationUseCase } from '../../../src/private/domain/use-cases/configuration/getProviderConfigurationUseCase'
@@ -45,6 +51,7 @@ import { UnsubscribeFromVirtualPresenceUseCase } from '../../../src/private/doma
 import { DefaultSudoPrivacyInteractionClient } from '../../../src/public/defaultSudoPrivacyInteractionClient'
 import { SudoPrivacyInteractionClient } from '../../../src/public/sudoPrivacyInteractionClient'
 import {
+  ActionSubscriber,
   AnalysisResultSubscriber,
   DataHolderSubscriber,
   VirtualPresenceSubscriber,
@@ -75,6 +82,9 @@ vi.mock(
 const ViMockDefaultAnalysisResultService = vi.mocked(
   DefaultAnalysisResultService,
 )
+
+vi.mock('../../../src/private/data/action/defaultActionService')
+const ViMockDefaultActionService = vi.mocked(DefaultActionService)
 
 vi.mock(
   '../../../src/private/data/provider-configuration/defaultProviderConfigurationService',
@@ -184,6 +194,25 @@ const ViMockUnsubscribeFromAnalysisResultUseCase = vi.mocked(
   UnsubscribeFromAnalysisResultUseCase,
 )
 
+vi.mock('../../../src/private/domain/use-cases/action/initiateActionUseCase')
+const ViMockInitiateActionUseCase = vi.mocked(InitiateActionUseCase)
+vi.mock(
+  '../../../src/private/domain/use-cases/action/confirmActionOutcomeUseCase',
+)
+const ViMockConfirmActionOutcomeUseCase = vi.mocked(ConfirmActionOutcomeUseCase)
+vi.mock(
+  '../../../src/private/domain/use-cases/action/listAvailableActionsUseCase',
+)
+const ViMockListAvailableActionsUseCase = vi.mocked(ListAvailableActionsUseCase)
+vi.mock('../../../src/private/domain/use-cases/action/subscribeToActionUseCase')
+const ViMockSubscribeToActionUseCase = vi.mocked(SubscribeToActionUseCase)
+vi.mock(
+  '../../../src/private/domain/use-cases/action/unsubscribeFromActionUseCase',
+)
+const ViMockUnsubscribeFromActionUseCase = vi.mocked(
+  UnsubscribeFromActionUseCase,
+)
+
 // MARK: Test suite
 
 describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
@@ -227,6 +256,13 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
   const mockUnsubscribeFromAnalysisResultUseCase =
     mock<UnsubscribeFromAnalysisResultUseCase>()
 
+  const mockActionService = mock<DefaultActionService>()
+  const mockInitiateActionUseCase = mock<InitiateActionUseCase>()
+  const mockConfirmActionOutcomeUseCase = mock<ConfirmActionOutcomeUseCase>()
+  const mockListAvailableActionsUseCase = mock<ListAvailableActionsUseCase>()
+  const mockSubscribeToActionUseCase = mock<SubscribeToActionUseCase>()
+  const mockUnsubscribeFromActionUseCase = mock<UnsubscribeFromActionUseCase>()
+
   let instanceUnderTest: SudoPrivacyInteractionClient
 
   const mockPrivacyInteractionServiceConfig: PrivacyInteractionServiceConfig = {
@@ -264,6 +300,13 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockSubscribeToAnalysisResultUseCase)
     reset(mockUnsubscribeFromAnalysisResultUseCase)
 
+    reset(mockActionService)
+    reset(mockInitiateActionUseCase)
+    reset(mockConfirmActionOutcomeUseCase)
+    reset(mockListAvailableActionsUseCase)
+    reset(mockSubscribeToActionUseCase)
+    reset(mockUnsubscribeFromActionUseCase)
+
     ViMockApiClient.mockClear()
     ViMockConnectVirtualPresenceWithAuthCodeUseCase.mockClear()
     ViMockConnectVirtualPresenceWithRefreshTokenUseCase.mockClear()
@@ -283,6 +326,12 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockListAnalysisResultsUseCase.mockClear()
     ViMockSubscribeToAnalysisResultUseCase.mockClear()
     ViMockUnsubscribeFromAnalysisResultUseCase.mockClear()
+    ViMockDefaultActionService.mockClear()
+    ViMockInitiateActionUseCase.mockClear()
+    ViMockConfirmActionOutcomeUseCase.mockClear()
+    ViMockListAvailableActionsUseCase.mockClear()
+    ViMockSubscribeToActionUseCase.mockClear()
+    ViMockUnsubscribeFromActionUseCase.mockClear()
   }
 
   beforeEach(() => {
@@ -361,7 +410,24 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockUnsubscribeFromAnalysisResultUseCase.mockImplementation(function () {
       return instance(mockUnsubscribeFromAnalysisResultUseCase)
     })
-
+    ViMockDefaultActionService.mockImplementation(function () {
+      return instance(mockActionService)
+    })
+    ViMockInitiateActionUseCase.mockImplementation(function () {
+      return instance(mockInitiateActionUseCase)
+    })
+    ViMockConfirmActionOutcomeUseCase.mockImplementation(function () {
+      return instance(mockConfirmActionOutcomeUseCase)
+    })
+    ViMockListAvailableActionsUseCase.mockImplementation(function () {
+      return instance(mockListAvailableActionsUseCase)
+    })
+    ViMockSubscribeToActionUseCase.mockImplementation(function () {
+      return instance(mockSubscribeToActionUseCase)
+    })
+    ViMockUnsubscribeFromActionUseCase.mockImplementation(function () {
+      return instance(mockUnsubscribeFromActionUseCase)
+    })
     const options: PrivateSudoPrivacyInteractionClientOptions = {
       sudoUserClient: instance(mockSudoUserClient),
       apiClient: instance(mockApiClient),
@@ -1249,6 +1315,164 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       await expect(
         instanceUnderTest.getOrganizationAnalysis({ domain: 'example.com' }),
       ).rejects.toThrow('get error')
+    })
+  })
+
+  describe('initiateAction', () => {
+    const input = {
+      dataHolderId: 'testDataHolderId',
+      intent: APIDataFactory.action.intent,
+      fulfilmentMethod: APIDataFactory.action.fulfilmentMethod,
+    }
+    beforeEach(() => {
+      when(mockInitiateActionUseCase.execute(anything())).thenResolve(
+        EntityDataFactory.action,
+      )
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.initiateAction(input)
+      expect(vi.mocked(InitiateActionUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with transformed input', async () => {
+      await instanceUnderTest.initiateAction(input)
+      verify(mockInitiateActionUseCase.execute(anything())).once()
+      const [args] = capture(mockInitiateActionUseCase.execute).first()
+      expect(args).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        intent: EntityDataFactory.action.intent,
+        fulfilmentMethod: EntityDataFactory.action.fulfilmentMethod,
+      })
+    })
+    it('returns transformed result', async () => {
+      await expect(
+        instanceUnderTest.initiateAction(input),
+      ).resolves.toStrictEqual(APIDataFactory.action)
+    })
+    it('throws when use case throws', async () => {
+      when(mockInitiateActionUseCase.execute(anything())).thenReject(
+        new Error('initiate error'),
+      )
+      await expect(instanceUnderTest.initiateAction(input)).rejects.toThrow(
+        'initiate error',
+      )
+    })
+  })
+
+  describe('confirmActionOutcome', () => {
+    beforeEach(() => {
+      when(mockConfirmActionOutcomeUseCase.execute(anything())).thenResolve(
+        EntityDataFactory.action,
+      )
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.confirmActionOutcome('testId')
+      expect(vi.mocked(ConfirmActionOutcomeUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with id', async () => {
+      await instanceUnderTest.confirmActionOutcome('testId')
+      verify(mockConfirmActionOutcomeUseCase.execute(anything())).once()
+      const [args] = capture(mockConfirmActionOutcomeUseCase.execute).first()
+      expect(args).toBe('testId')
+    })
+    it('returns transformed result', async () => {
+      await expect(
+        instanceUnderTest.confirmActionOutcome('testId'),
+      ).resolves.toStrictEqual(APIDataFactory.action)
+    })
+    it('throws when use case throws', async () => {
+      when(mockConfirmActionOutcomeUseCase.execute(anything())).thenReject(
+        new Error('confirm error'),
+      )
+      await expect(
+        instanceUnderTest.confirmActionOutcome('testId'),
+      ).rejects.toThrow('confirm error')
+    })
+  })
+
+  describe('listAvailableActions', () => {
+    beforeEach(() => {
+      when(mockListAvailableActionsUseCase.execute(anything())).thenResolve({
+        availableActions: [EntityDataFactory.availableAction],
+        nextToken: 'nextToken',
+      })
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.listAvailableActions({
+        dataHolderId: 'testDataHolderId',
+      })
+      expect(vi.mocked(ListAvailableActionsUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with dataHolderId', async () => {
+      await instanceUnderTest.listAvailableActions({
+        dataHolderId: 'testDataHolderId',
+      })
+      verify(mockListAvailableActionsUseCase.execute(anything())).once()
+      const [args] = capture(mockListAvailableActionsUseCase.execute).first()
+      expect(args).toStrictEqual({ dataHolderId: 'testDataHolderId' })
+    })
+    it('returns transformed result', async () => {
+      await expect(
+        instanceUnderTest.listAvailableActions({
+          dataHolderId: 'testDataHolderId',
+        }),
+      ).resolves.toStrictEqual({
+        items: [APIDataFactory.availableAction],
+        nextToken: 'nextToken',
+      })
+    })
+    it('throws when use case throws', async () => {
+      when(mockListAvailableActionsUseCase.execute(anything())).thenReject(
+        new Error('list error'),
+      )
+      await expect(
+        instanceUnderTest.listAvailableActions({
+          dataHolderId: 'testDataHolderId',
+        }),
+      ).rejects.toThrow('list error')
+    })
+  })
+
+  describe('subscribeToActions', () => {
+    const mockSubscriber: ActionSubscriber = {
+      actionUpdated: vi.fn(),
+      connectionStatusChanged: vi.fn(),
+    }
+    beforeEach(() => {
+      when(mockSubscribeToActionUseCase.execute(anything())).thenResolve()
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.subscribeToActions('sub-1', mockSubscriber)
+      expect(vi.mocked(SubscribeToActionUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with subscriptionId and subscriber', async () => {
+      await instanceUnderTest.subscribeToActions('sub-1', mockSubscriber)
+      verify(mockSubscribeToActionUseCase.execute(anything())).once()
+      const [args] = capture(mockSubscribeToActionUseCase.execute).first()
+      expect(args).toStrictEqual({
+        subscriptionId: 'sub-1',
+        subscriber: mockSubscriber,
+      })
+    })
+    it('throws when use case throws', async () => {
+      when(mockSubscribeToActionUseCase.execute(anything())).thenReject(
+        new Error('subscribe error'),
+      )
+      await expect(
+        instanceUnderTest.subscribeToActions('sub-1', mockSubscriber),
+      ).rejects.toThrow('subscribe error')
+    })
+  })
+
+  describe('unsubscribeFromActions', () => {
+    it('generates use case', () => {
+      instanceUnderTest.unsubscribeFromActions('sub-1')
+      expect(vi.mocked(UnsubscribeFromActionUseCase)).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with subscriptionId', () => {
+      instanceUnderTest.unsubscribeFromActions('sub-1')
+      verify(mockUnsubscribeFromActionUseCase.execute(anything())).once()
+      const [args] = capture(mockUnsubscribeFromActionUseCase.execute).first()
+      expect(args).toBe('sub-1')
     })
   })
 })

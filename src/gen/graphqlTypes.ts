@@ -39,6 +39,53 @@ export type Scalars = {
   AWSURL: { input: any; output: any }
 }
 
+export type Action = {
+  additionalInfo?: Maybe<Scalars['String']['output']>
+  assistedPayload?: Maybe<AssistedPayload>
+  completedAtEpochMs?: Maybe<Scalars['Float']['output']>
+  createdAtEpochMs: Scalars['Float']['output']
+  dataHolderId?: Maybe<Scalars['ID']['output']>
+  fulfilmentMethod: ActionFulfilmentMethod
+  id: Scalars['ID']['output']
+  initiatedAtEpochMs?: Maybe<Scalars['Float']['output']>
+  intent: ActionIntent
+  owner: Scalars['ID']['output']
+  status: ActionStatus
+  updatedAtEpochMs: Scalars['Float']['output']
+  version: Scalars['Int']['output']
+  virtualPresenceId: Scalars['ID']['output']
+}
+
+export type ActionContact = {
+  address?: Maybe<Scalars['String']['output']>
+  email?: Maybe<Scalars['String']['output']>
+  phone?: Maybe<Scalars['String']['output']>
+}
+
+export type ActionFulfilmentMethod =
+  'ASSISTED' | 'DELEGATED' | '%future added value'
+
+export type ActionIntent =
+  | 'ACCESS_MY_DATA'
+  | 'DELETE_MY_DATA'
+  | 'LIMIT_DATA_USE'
+  | 'OTHER'
+  | 'STOP_CONTACT'
+  | '%future added value'
+
+export type ActionOrigin =
+  'ANALYSIS' | 'DISCOVERY' | 'STATIC' | '%future added value'
+
+export type ActionStatus =
+  | 'COMPLETED_UNVERIFIED'
+  | 'COMPLETED_VERIFIED'
+  | 'CONTRADICTED'
+  | 'FAILED'
+  | 'IN_PROGRESS'
+  | 'PENDING'
+  | 'REQUIRES_USER_INPUT'
+  | '%future added value'
+
 export type AnalysisResult = {
   createdAtEpochMs: Scalars['Float']['output']
   data?: Maybe<AnalysisResultData>
@@ -87,9 +134,38 @@ export type AnalysisResultUpdate = {
   virtualPresenceId: Scalars['ID']['output']
 }
 
+export type AssistedEmailTemplate = {
+  body: Scalars['String']['output']
+  subject?: Maybe<Scalars['String']['output']>
+}
+
+export type AssistedPayload = {
+  contact?: Maybe<ActionContact>
+  emailTemplate?: Maybe<AssistedEmailTemplate>
+  instructions?: Maybe<Scalars['String']['output']>
+  jurisdiction?: Maybe<Scalars['String']['output']>
+  toAddress?: Maybe<Scalars['String']['output']>
+  unsubscribeMailto?: Maybe<Scalars['String']['output']>
+  unsubscribeUrl?: Maybe<Scalars['String']['output']>
+}
+
 export type AuthCodeInput = {
   authCode: Scalars['String']['input']
   redirectUri?: InputMaybe<Scalars['String']['input']>
+}
+
+export type AvailableAction = {
+  additionalInfo?: Maybe<Scalars['String']['output']>
+  description?: Maybe<Scalars['String']['output']>
+  fulfilmentMethod: ActionFulfilmentMethod
+  intent: ActionIntent
+  origin: ActionOrigin
+  title?: Maybe<Scalars['String']['output']>
+}
+
+export type AvailableActionConnection = {
+  items: Array<AvailableAction>
+  nextToken?: Maybe<Scalars['String']['output']>
 }
 
 export type CapabilitySignals = {
@@ -156,6 +232,9 @@ export type DataHolder = {
   virtualPresenceId: Scalars['ID']['output']
 }
 
+export type DataHolderChangeType =
+  'METADATA_UPDATE' | 'NEW' | 'SIGNIFICANT_UPDATE' | '%future added value'
+
 export type DataHolderConnection = {
   items: Array<DataHolder>
   nextToken?: Maybe<Scalars['String']['output']>
@@ -208,21 +287,42 @@ export type DataHoldersUpdate = {
   owner: Scalars['ID']['output']
 }
 
+export type InitiateActionInput = {
+  dataHolderId: Scalars['ID']['input']
+  fulfilmentMethod: ActionFulfilmentMethod
+  intent: ActionIntent
+}
+
 export type ListVirtualPresencesInput = {
   limit?: InputMaybe<Scalars['Int']['input']>
   nextToken?: InputMaybe<Scalars['String']['input']>
 }
 
 export type Mutation = {
+  /**
+   * Confirm that an assisted or delegated action was completed, transitioning it
+   * from COMPLETED_UNVERIFIED to COMPLETED_VERIFIED.
+   */
+  confirmActionOutcome: Action
   /** Connect a virtual presence. */
   connectVirtualPresence: VirtualPresence
   /** Disconnect a virtual presence. */
   disconnectVirtualPresence: VirtualPresence
   /**
+   * Initiate an action against a data holder relationship. Delegated actions are
+   * performed on the user's behalf; assisted actions return structured materials
+   * for the client to complete.
+   */
+  initiateAction: Action
+  /**
    * Rescan an existing virtual presence for new data holders.
    * Scans from the last scan date forward.
    */
   rescanVirtualPresence: VirtualPresence
+}
+
+export type MutationConfirmActionOutcomeArgs = {
+  id: Scalars['ID']['input']
 }
 
 export type MutationConnectVirtualPresenceArgs = {
@@ -231,6 +331,10 @@ export type MutationConnectVirtualPresenceArgs = {
 
 export type MutationDisconnectVirtualPresenceArgs = {
   id: Scalars['String']['input']
+}
+
+export type MutationInitiateActionArgs = {
+  input: InitiateActionInput
 }
 
 export type MutationRescanVirtualPresenceArgs = {
@@ -254,10 +358,12 @@ export type OrganizationAnalysisMode =
   'ANALYZE' | 'FETCH' | '%future added value'
 
 export type OrganizationCategory =
+  | 'AdTechAndMarketing'
   | 'Automotive'
   | 'Communications'
   | 'CommunityAndCharity'
   | 'Cryptocurrency'
+  | 'DataBroker'
   | 'Dating'
   | 'Education'
   | 'Employment'
@@ -329,6 +435,12 @@ export type Query = {
   getProviderConfiguration: ProviderConfiguration
   /** List analysis results for a virtual presence. */
   listAnalysisResults: AnalysisResultConnection
+  /**
+   * List the actions currently available for a data holder relationship. Derived
+   * at query time by merging static, analysis, and discovery sources; not
+   * persisted. The owning virtual presence is derived from the data holder.
+   */
+  listAvailableActions: AvailableActionConnection
   /** List scan summaries for a data holder (most recent first) */
   listDataHolderScanSummaries: DataHolderScanSummaryConnection
   /** List data holders by virtual presence */
@@ -354,6 +466,10 @@ export type QueryListAnalysisResultsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>
   nextToken?: InputMaybe<Scalars['String']['input']>
   virtualPresenceId: Scalars['ID']['input']
+}
+
+export type QueryListAvailableActionsArgs = {
+  dataHolderId: Scalars['ID']['input']
 }
 
 export type QueryListDataHolderScanSummariesArgs = {
@@ -434,6 +550,12 @@ export type SignalValue = 'NO' | 'UNKNOWN' | 'YES' | '%future added value'
 
 export type Subscription = {
   /**
+   * Subscribe to action status updates for the authenticated user.
+   * Emitted each time an action's status changes. Carries the scalar fields of the
+   * action; re-query the action to fetch the full assistedPayload.
+   */
+  onActionStatusUpdate?: Maybe<Action>
+  /**
    * Subscribe to analysis result updates for the authenticated user.
    * Emitted each time an analysis result is created or updated.
    * Use getAnalysisResult to fetch the full typed data.
@@ -449,6 +571,10 @@ export type Subscription = {
    * Emitted when a virtual presence changes state (e.g. to NEEDS_REAUTH).
    */
   onVirtualPresenceUpdate?: Maybe<VirtualPresence>
+}
+
+export type SubscriptionOnActionStatusUpdateArgs = {
+  owner: Scalars['ID']['input']
 }
 
 export type SubscriptionOnAnalysisResultUpdateArgs = {
@@ -489,6 +615,44 @@ export type VirtualPresenceState =
   | 'NEEDS_REAUTH'
   | 'SCANNING'
   | '%future added value'
+
+export type ActionFieldsFragment = {
+  id: string
+  virtualPresenceId: string
+  dataHolderId?: string | null
+  intent: ActionIntent
+  additionalInfo?: string | null
+  fulfilmentMethod: ActionFulfilmentMethod
+  status: ActionStatus
+  initiatedAtEpochMs?: number | null
+  completedAtEpochMs?: number | null
+  owner: string
+  version: number
+  createdAtEpochMs: number
+  updatedAtEpochMs: number
+  assistedPayload?: {
+    toAddress?: string | null
+    unsubscribeUrl?: string | null
+    unsubscribeMailto?: string | null
+    jurisdiction?: string | null
+    instructions?: string | null
+    contact?: {
+      email?: string | null
+      phone?: string | null
+      address?: string | null
+    } | null
+    emailTemplate?: { subject?: string | null; body: string } | null
+  } | null
+}
+
+export type AvailableActionFieldsFragment = {
+  intent: ActionIntent
+  additionalInfo?: string | null
+  fulfilmentMethod: ActionFulfilmentMethod
+  origin: ActionOrigin
+  title?: string | null
+  description?: string | null
+}
 
 export type AnalysisResultDataFieldsFragment = {
   attribution: Array<string>
@@ -774,6 +938,76 @@ export type RescanVirtualPresenceMutation = {
     version: number
     createdAtEpochMs: number
     updatedAtEpochMs: number
+  }
+}
+
+export type InitiateActionMutationVariables = Exact<{
+  input: InitiateActionInput
+}>
+
+export type InitiateActionMutation = {
+  initiateAction: {
+    id: string
+    virtualPresenceId: string
+    dataHolderId?: string | null
+    intent: ActionIntent
+    additionalInfo?: string | null
+    fulfilmentMethod: ActionFulfilmentMethod
+    status: ActionStatus
+    initiatedAtEpochMs?: number | null
+    completedAtEpochMs?: number | null
+    owner: string
+    version: number
+    createdAtEpochMs: number
+    updatedAtEpochMs: number
+    assistedPayload?: {
+      toAddress?: string | null
+      unsubscribeUrl?: string | null
+      unsubscribeMailto?: string | null
+      jurisdiction?: string | null
+      instructions?: string | null
+      contact?: {
+        email?: string | null
+        phone?: string | null
+        address?: string | null
+      } | null
+      emailTemplate?: { subject?: string | null; body: string } | null
+    } | null
+  }
+}
+
+export type ConfirmActionOutcomeMutationVariables = Exact<{
+  id: Scalars['ID']['input']
+}>
+
+export type ConfirmActionOutcomeMutation = {
+  confirmActionOutcome: {
+    id: string
+    virtualPresenceId: string
+    dataHolderId?: string | null
+    intent: ActionIntent
+    additionalInfo?: string | null
+    fulfilmentMethod: ActionFulfilmentMethod
+    status: ActionStatus
+    initiatedAtEpochMs?: number | null
+    completedAtEpochMs?: number | null
+    owner: string
+    version: number
+    createdAtEpochMs: number
+    updatedAtEpochMs: number
+    assistedPayload?: {
+      toAddress?: string | null
+      unsubscribeUrl?: string | null
+      unsubscribeMailto?: string | null
+      jurisdiction?: string | null
+      instructions?: string | null
+      contact?: {
+        email?: string | null
+        phone?: string | null
+        address?: string | null
+      } | null
+      emailTemplate?: { subject?: string | null; body: string } | null
+    } | null
   }
 }
 
@@ -1100,6 +1334,24 @@ export type ListDataHolderScanSummariesQuery = {
   }
 }
 
+export type ListAvailableActionsQueryVariables = Exact<{
+  dataHolderId: Scalars['ID']['input']
+}>
+
+export type ListAvailableActionsQuery = {
+  listAvailableActions: {
+    nextToken?: string | null
+    items: Array<{
+      intent: ActionIntent
+      additionalInfo?: string | null
+      fulfilmentMethod: ActionFulfilmentMethod
+      origin: ActionOrigin
+      title?: string | null
+      description?: string | null
+    }>
+  }
+}
+
 export type OnVirtualPresenceUpdateSubscriptionVariables = Exact<{
   owner: Scalars['ID']['input']
 }>
@@ -1160,6 +1412,144 @@ export type OnAnalysisResultUpdateSubscription = {
   } | null
 }
 
+export type OnActionStatusUpdateSubscriptionVariables = Exact<{
+  owner: Scalars['ID']['input']
+}>
+
+export type OnActionStatusUpdateSubscription = {
+  onActionStatusUpdate?: {
+    id: string
+    virtualPresenceId: string
+    dataHolderId?: string | null
+    intent: ActionIntent
+    additionalInfo?: string | null
+    fulfilmentMethod: ActionFulfilmentMethod
+    status: ActionStatus
+    initiatedAtEpochMs?: number | null
+    completedAtEpochMs?: number | null
+    owner: string
+    version: number
+    createdAtEpochMs: number
+    updatedAtEpochMs: number
+  } | null
+}
+
+export const ActionFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Action' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'virtualPresenceId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assistedPayload' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'toAddress' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeUrl' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeMailto' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'contact' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'phone' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'address' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'jurisdiction' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'instructions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'emailTemplate' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subject' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'initiatedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'completedAtEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<ActionFieldsFragment, unknown>
+export const AvailableActionFieldsFragmentDoc = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AvailableActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AvailableAction' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'origin' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'title' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<AvailableActionFieldsFragment, unknown>
 export const AnalysisResultDataFieldsFragmentDoc = {
   kind: 'Document',
   definitions: [
@@ -2277,6 +2667,288 @@ export const RescanVirtualPresenceDocument = {
 } as unknown as DocumentNode<
   RescanVirtualPresenceMutation,
   RescanVirtualPresenceMutationVariables
+>
+export const InitiateActionDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'InitiateAction' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'input' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'InitiateActionInput' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'initiateAction' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'input' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'input' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'ActionFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Action' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'virtualPresenceId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assistedPayload' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'toAddress' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeUrl' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeMailto' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'contact' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'phone' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'address' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'jurisdiction' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'instructions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'emailTemplate' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subject' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'initiatedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'completedAtEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  InitiateActionMutation,
+  InitiateActionMutationVariables
+>
+export const ConfirmActionOutcomeDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'ConfirmActionOutcome' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'confirmActionOutcome' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'id' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'ActionFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Action' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'virtualPresenceId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assistedPayload' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'toAddress' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeUrl' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeMailto' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'contact' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'phone' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'address' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'jurisdiction' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'instructions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'emailTemplate' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subject' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'initiatedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'completedAtEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ConfirmActionOutcomeMutation,
+  ConfirmActionOutcomeMutationVariables
 >
 export const GetProviderConfigurationDocument = {
   kind: 'Document',
@@ -3721,6 +4393,89 @@ export const ListDataHolderScanSummariesDocument = {
   ListDataHolderScanSummariesQuery,
   ListDataHolderScanSummariesQueryVariables
 >
+export const ListAvailableActionsDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'ListAvailableActions' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'dataHolderId' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'listAvailableActions' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'dataHolderId' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'dataHolderId' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'items' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'FragmentSpread',
+                        name: { kind: 'Name', value: 'AvailableActionFields' },
+                      },
+                    ],
+                  },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'nextToken' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'AvailableActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'AvailableAction' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'origin' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'title' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ListAvailableActionsQuery,
+  ListAvailableActionsQueryVariables
+>
 export const OnVirtualPresenceUpdateDocument = {
   kind: 'Document',
   definitions: [
@@ -3975,4 +4730,91 @@ export const OnAnalysisResultUpdateDocument = {
 } as unknown as DocumentNode<
   OnAnalysisResultUpdateSubscription,
   OnAnalysisResultUpdateSubscriptionVariables
+>
+export const OnActionStatusUpdateDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'subscription',
+      name: { kind: 'Name', value: 'OnActionStatusUpdate' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'owner' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'onActionStatusUpdate' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'owner' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'owner' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'virtualPresenceId' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'dataHolderId' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'additionalInfo' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'fulfilmentMethod' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'initiatedAtEpochMs' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'completedAtEpochMs' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'createdAtEpochMs' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'updatedAtEpochMs' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  OnActionStatusUpdateSubscription,
+  OnActionStatusUpdateSubscriptionVariables
 >

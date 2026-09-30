@@ -6,6 +6,11 @@
 
 import { DefaultLogger, ListOutput, Logger } from '@sudoplatform/sudo-common'
 import { SudoUserClient } from '@sudoplatform/sudo-user'
+import { DefaultActionService } from '../private/data/action/defaultActionService'
+import { ActionTransformer } from '../private/data/action/transformer/actionTransformer'
+import { ActionFulfilmentMethodTransformer } from '../private/data/action/transformer/actionFulfilmentMethodTransformer'
+import { ActionIntentTransformer } from '../private/data/action/transformer/actionIntentTransformer'
+import { AvailableActionTransformer } from '../private/data/action/transformer/availableActionTransformer'
 import { DefaultAnalysisResultService } from '../private/data/analysis-result/defaultAnalysisResultService'
 import { AnalysisResultTransformer } from '../private/data/analysis-result/transformer/analysisResultTransformer'
 import { ApiClient } from '../private/data/common/apiClient'
@@ -22,6 +27,11 @@ import { DefaultVirtualPresenceService } from '../private/data/virtual-presence/
 import { RelationshipProviderTransformer } from '../private/data/virtual-presence/transformer/relationshipProviderTransformer'
 import { VirtualPresenceTransformer } from '../private/data/virtual-presence/transformer/virtualPresenceTransformer'
 import { GetAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
+import { ConfirmActionOutcomeUseCase } from '../private/domain/use-cases/action/confirmActionOutcomeUseCase'
+import { InitiateActionUseCase } from '../private/domain/use-cases/action/initiateActionUseCase'
+import { ListAvailableActionsUseCase } from '../private/domain/use-cases/action/listAvailableActionsUseCase'
+import { SubscribeToActionUseCase } from '../private/domain/use-cases/action/subscribeToActionUseCase'
+import { UnsubscribeFromActionUseCase } from '../private/domain/use-cases/action/unsubscribeFromActionUseCase'
 import { ListAnalysisResultsUseCase } from '../private/domain/use-cases/analysis-result/listAnalysisResultsUseCase'
 import { SubscribeToAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/subscribeToAnalysisResultUseCase'
 import { UnsubscribeFromAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/unsubscribeFromAnalysisResultUseCase'
@@ -44,7 +54,9 @@ import {
   ConnectVirtualPresenceWithRefreshTokenInput,
   GetDataHolderOptions,
   GetOrganizationAnalysisInput,
+  InitiateActionInput,
   ListAnalysisResultsInput,
+  ListAvailableActionsInput,
   ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
   ListVirtualPresencesInput,
@@ -55,8 +67,11 @@ import {
   SudoPrivacyInteractionClientOptions,
 } from './sudoPrivacyInteractionClient'
 import {
+  Action,
   AnalysisResult,
   AnalysisResultSubscriber,
+  ActionSubscriber,
+  AvailableAction,
   DataHolder,
   DataHolderScanSummary,
   DataHolderSubscriber,
@@ -74,6 +89,7 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
   private readonly dataHolderService: DefaultDataHolderService
   private readonly analysisResultService: DefaultAnalysisResultService
   private readonly organizationAnalysisService: DefaultOrganizationAnalysisService
+  private readonly actionService: DefaultActionService
   private readonly providerConfigurationTransformer: ProviderConfigurationTransformer
   private readonly virtualPresenceTransformer: VirtualPresenceTransformer
   private readonly relationshipProviderTransformer: RelationshipProviderTransformer
@@ -82,6 +98,10 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
   private readonly analysisResultTransformer: AnalysisResultTransformer
   private readonly organizationAnalysisTransformer: OrganizationAnalysisTransformer
   private readonly organizationAnalysisModeTransformer: OrganizationAnalysisModeTransformer
+  private readonly actionTransformer: ActionTransformer
+  private readonly availableActionTransformer: AvailableActionTransformer
+  private readonly actionIntentTransformer: ActionIntentTransformer
+  private readonly actionFulfilmentMethodTransformer: ActionFulfilmentMethodTransformer
   private readonly log: Logger
 
   public constructor(opts: SudoPrivacyInteractionClientOptions) {
@@ -106,6 +126,8 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       this.apiClient,
     )
 
+    this.actionService = new DefaultActionService(this.apiClient)
+
     this.providerConfigurationTransformer =
       new ProviderConfigurationTransformer()
     this.virtualPresenceTransformer = new VirtualPresenceTransformer()
@@ -117,6 +139,11 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     this.organizationAnalysisTransformer = new OrganizationAnalysisTransformer()
     this.organizationAnalysisModeTransformer =
       new OrganizationAnalysisModeTransformer()
+    this.actionTransformer = new ActionTransformer()
+    this.availableActionTransformer = new AvailableActionTransformer()
+    this.actionIntentTransformer = new ActionIntentTransformer()
+    this.actionFulfilmentMethodTransformer =
+      new ActionFulfilmentMethodTransformer()
   }
 
   public async getProviderConfiguration(): Promise<ProviderConfiguration[]> {
@@ -417,5 +444,61 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       return undefined
     }
     return this.organizationAnalysisTransformer.fromEntityToAPI(result)
+  }
+
+  public async initiateAction(input: InitiateActionInput): Promise<Action> {
+    this.log.debug(this.initiateAction.name, { input })
+    const useCase = new InitiateActionUseCase(this.actionService)
+    const result = await useCase.execute({
+      dataHolderId: input.dataHolderId,
+      intent: this.actionIntentTransformer.fromAPIToEntity(input.intent),
+      fulfilmentMethod: this.actionFulfilmentMethodTransformer.fromAPIToEntity(
+        input.fulfilmentMethod,
+      ),
+    })
+    return this.actionTransformer.fromEntityToAPI(result)
+  }
+
+  public async confirmActionOutcome(id: string): Promise<Action> {
+    this.log.debug(this.confirmActionOutcome.name, { id })
+    const useCase = new ConfirmActionOutcomeUseCase(this.actionService)
+    const result = await useCase.execute(id)
+    return this.actionTransformer.fromEntityToAPI(result)
+  }
+
+  public async listAvailableActions(
+    input: ListAvailableActionsInput,
+  ): Promise<ListOutput<AvailableAction>> {
+    this.log.debug(this.listAvailableActions.name, { input })
+    const useCase = new ListAvailableActionsUseCase(this.actionService)
+    const { availableActions, nextToken: resultNextToken } =
+      await useCase.execute({ dataHolderId: input.dataHolderId })
+    const transformedAvailableActions = availableActions.map(
+      (availableAction) =>
+        this.availableActionTransformer.fromEntityToAPI(availableAction),
+    )
+    return { items: transformedAvailableActions, nextToken: resultNextToken }
+  }
+
+  public async subscribeToActions(
+    subscriptionId: string,
+    subscriber: ActionSubscriber,
+  ): Promise<void> {
+    this.log.debug(this.subscribeToActions.name, {
+      subscriptionId,
+    })
+    const useCase = new SubscribeToActionUseCase(
+      this.actionService,
+      this.userClient,
+    )
+    await useCase.execute({ subscriptionId, subscriber })
+  }
+
+  public unsubscribeFromActions(subscriptionId: string): void {
+    this.log.debug(this.unsubscribeFromActions.name, {
+      subscriptionId,
+    })
+    const useCase = new UnsubscribeFromActionUseCase(this.actionService)
+    useCase.execute(subscriptionId)
   }
 }

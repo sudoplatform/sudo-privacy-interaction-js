@@ -15,3 +15,15 @@ mutation RescanVirtualPresence($id: String!, $options: ScanOptionsInput) {
     ...VirtualPresenceFields
   }
 }
+
+mutation InitiateAction($input: InitiateActionInput!) {
+  initiateAction(input: $input) {
+    ...ActionFields
+  }
+}
+
+mutation ConfirmActionOutcome($id: ID!) {
+  confirmActionOutcome(id: $id) {
+    ...ActionFields
+  }
+}

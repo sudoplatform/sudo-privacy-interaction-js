@@ -23,6 +23,7 @@ export interface CreateTestEmailInput {
   internalDateEpochMs: number
   labelIds: string[]
   listUnsubscribeHeader?: string
+  listUnsubscribePostHeader?: string
   subject?: string
   expiresInHours?: number
 }
@@ -34,6 +35,7 @@ export interface TestEmail {
   internalDateEpochMs: number
   labelIds: string[]
   listUnsubscribeHeader?: string | null
+  listUnsubscribePostHeader?: string | null
   subject?: string | null
   owner: string
   version: number
@@ -47,8 +49,8 @@ interface GraphQLResponse<T> {
 }
 
 const CREATE_TEST_EMAILS_MUTATION = `
-  mutation CreateTestEmails($input: CreateTestEmailsInput!) {
-    createTestEmails(input: $input) {
+  mutation CreateTestEmails($input: CreatePrivacyInteractionTestEmailsInput!) {
+    createPrivacyInteractionTestEmails(input: $input) {
       id
       emailAddress
       from
@@ -66,7 +68,7 @@ const CREATE_TEST_EMAILS_MUTATION = `
 
 const DELETE_TEST_EMAILS_MUTATION = `
   mutation DeleteTestEmails($ids: [ID!]!) {
-    deleteTestEmails(ids: $ids)
+    deletePrivacyInteractionTestEmails(ids: $ids)
   }
 `
 
@@ -123,18 +125,16 @@ export class TestAdminClient {
   }
 
   async createTestEmails(emails: CreateTestEmailInput[]): Promise<TestEmail[]> {
-    const data = await this.execute<{ createTestEmails: TestEmail[] }>(
-      CREATE_TEST_EMAILS_MUTATION,
-      { input: { emails } },
-    )
-    return data.createTestEmails
+    const data = await this.execute<{
+      createPrivacyInteractionTestEmails: TestEmail[]
+    }>(CREATE_TEST_EMAILS_MUTATION, { input: { emails } })
+    return data.createPrivacyInteractionTestEmails
   }
 
   async deleteTestEmails(ids: string[]): Promise<string[]> {
-    const data = await this.execute<{ deleteTestEmails: string[] }>(
-      DELETE_TEST_EMAILS_MUTATION,
-      { ids },
-    )
-    return data.deleteTestEmails
+    const data = await this.execute<{
+      deletePrivacyInteractionTestEmails: string[]
+    }>(DELETE_TEST_EMAILS_MUTATION, { ids })
+    return data.deletePrivacyInteractionTestEmails
   }
 }

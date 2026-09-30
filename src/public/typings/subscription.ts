@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Action } from './action'
 import { AnalysisResultUpdate } from './analysisResult'
 import { DataHolder } from './dataHolder'
 import { VirtualPresence } from './virtualPresence'
@@ -87,6 +88,30 @@ export interface AnalysisResultSubscriber {
    * The subscriber won't be notified of analysis result changes until the connection
    * status changes to `ConnectionState.CONNECTED`. The subscriber will stop receiving
    * analysis result change notifications when the connection state changes to `ConnectionState.DISCONNECTED`.
+   *
+   * @param state The connection state.
+   */
+  connectionStatusChanged(state: ConnectionState): void
+}
+
+/**
+ * Subscriber interface for receiving action status update events.
+ *
+ * @interface ActionSubscriber
+ */
+export interface ActionSubscriber {
+  /**
+   * Notifies the subscriber of an action status update.
+   *
+   * @param {Action} action The updated action.
+   */
+  actionUpdated(action: Action): void
+
+  /**
+   * Notifies the subscriber that the subscription connection state has changed.
+   * The subscriber won't be notified of action changes until the connection
+   * status changes to `ConnectionState.CONNECTED`. The subscriber will stop receiving
+   * action change notifications when the connection state changes to `ConnectionState.DISCONNECTED`.
    *
    * @param state The connection state.
    */

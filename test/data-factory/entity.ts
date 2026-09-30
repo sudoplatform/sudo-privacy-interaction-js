@@ -34,6 +34,14 @@ import {
   ShareStyleEntity,
   SignalValueEntity,
 } from '../../src/private/domain/entities/analysis-result/analysisResultEntity'
+import {
+  ActionEntity,
+  ActionFulfilmentMethodEntity,
+  ActionIntentEntity,
+  ActionOriginEntity,
+  ActionStatusEntity,
+  AvailableActionEntity,
+} from '../../src/private/domain/entities/action/actionEntity'
 
 export class EntityDataFactory {
   private static readonly commonProps = {
@@ -201,5 +209,44 @@ export class EntityDataFactory {
     version: 1,
     createdAt: new Date(1.0),
     updatedAt: new Date(2.0),
+  }
+
+  static readonly assistedPayload = {
+    toAddress: 'privacy@example.com',
+    unsubscribeUrl: 'https://example.com/unsubscribe',
+    unsubscribeMailto: 'mailto:unsubscribe@example.com',
+    contact: {
+      email: 'contact@example.com',
+      phone: '+1000000000',
+      address: '1 Example St',
+    },
+    jurisdiction: 'US-CA',
+    instructions: 'Follow the link to unsubscribe.',
+    emailTemplate: {
+      subject: 'Please delete my data',
+      body: 'Hello, please delete my data for {{fullName}}.',
+    },
+  }
+
+  static readonly action: ActionEntity = {
+    ...EntityDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderId: 'testDataHolderId',
+    intent: ActionIntentEntity.StopContact,
+    additionalInfo: undefined,
+    fulfilmentMethod: ActionFulfilmentMethodEntity.Assisted,
+    status: ActionStatusEntity.Pending,
+    assistedPayload: EntityDataFactory.assistedPayload,
+    initiatedAt: new Date(6.0),
+    completedAt: undefined,
+  }
+
+  static readonly availableAction: AvailableActionEntity = {
+    intent: ActionIntentEntity.StopContact,
+    additionalInfo: undefined,
+    fulfilmentMethod: ActionFulfilmentMethodEntity.Assisted,
+    origin: ActionOriginEntity.Discovery,
+    title: 'Unsubscribe',
+    description: 'Opt out of marketing communications.',
   }
 }

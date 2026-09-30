@@ -6,7 +6,9 @@
 
 import { Base64 } from '@sudoplatform/sudo-common'
 import {
+  Action as GraphQLAction,
   AnalysisResultFieldsFragment,
+  AvailableAction as GraphQLAvailableAction,
   DataHolderFieldsFragment,
   DataHolderScanSummaryFieldsFragment,
   CapabilitySignals as GraphQLCapabilitySignals,
@@ -174,5 +176,42 @@ export class GraphQLDataFactory {
     version: 1,
     createdAtEpochMs: 1.0,
     updatedAtEpochMs: 2.0,
+  }
+
+  static readonly action: GraphQLAction = {
+    ...GraphQLDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderId: 'testDataHolderId',
+    intent: 'STOP_CONTACT',
+    additionalInfo: undefined,
+    fulfilmentMethod: 'ASSISTED',
+    status: 'PENDING',
+    assistedPayload: {
+      toAddress: 'privacy@example.com',
+      unsubscribeUrl: 'https://example.com/unsubscribe',
+      unsubscribeMailto: 'mailto:unsubscribe@example.com',
+      contact: {
+        email: 'contact@example.com',
+        phone: '+1000000000',
+        address: '1 Example St',
+      },
+      jurisdiction: 'US-CA',
+      instructions: 'Follow the link to unsubscribe.',
+      emailTemplate: {
+        subject: 'Please delete my data',
+        body: 'Hello, please delete my data for {{fullName}}.',
+      },
+    },
+    initiatedAtEpochMs: 6.0,
+    completedAtEpochMs: undefined,
+  }
+
+  static readonly availableAction: GraphQLAvailableAction = {
+    intent: 'STOP_CONTACT',
+    additionalInfo: undefined,
+    fulfilmentMethod: 'ASSISTED',
+    origin: 'DISCOVERY',
+    title: 'Unsubscribe',
+    description: 'Opt out of marketing communications.',
   }
 }

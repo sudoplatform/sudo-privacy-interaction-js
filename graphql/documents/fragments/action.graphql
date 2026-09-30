@@ -1,0 +1,40 @@
+fragment ActionFields on Action {
+  id
+  virtualPresenceId
+  dataHolderId
+  intent
+  additionalInfo
+  fulfilmentMethod
+  status
+  assistedPayload {
+    toAddress
+    unsubscribeUrl
+    unsubscribeMailto
+    contact {
+      email
+      phone
+      address
+    }
+    jurisdiction
+    instructions
+    emailTemplate {
+      subject
+      body
+    }
+  }
+  initiatedAtEpochMs
+  completedAtEpochMs
+  owner
+  version
+  createdAtEpochMs
+  updatedAtEpochMs
+}
+
+fragment AvailableActionFields on AvailableAction {
+  intent
+  additionalInfo
+  fulfilmentMethod
+  origin
+  title
+  description
+}

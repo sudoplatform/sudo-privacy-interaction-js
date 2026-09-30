@@ -36,3 +36,18 @@ export const resolveRelationshipProvider = async (
     ? RelationshipProvider.GmailProvider
     : RelationshipProvider.TestProvider
 }
+
+/**
+ * Determines whether the TEST relationship provider is enabled for the current
+ * environment. The TEST provider allows seeding data holders with known actions
+ * (e.g. via `List-Unsubscribe` headers), which some integration tests depend on.
+ *
+ * @param {SudoPrivacyInteractionClient} client The privacy interaction client.
+ * @returns {boolean} True when the TEST provider is available.
+ */
+export const isTestProviderEnabled = async (
+  client: SudoPrivacyInteractionClient,
+): Promise<boolean> => {
+  const configs = await client.getProviderConfiguration()
+  return configs.some((config) => config.name.toLowerCase() === 'default')
+}

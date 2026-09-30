@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+export * from './action'
 export * from './analysisResult'
 export * from './dataHolder'
 export * from './organizationAnalysis'
