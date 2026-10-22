@@ -26,6 +26,7 @@ export class VirtualPresenceTransformer {
       state: virtualPresenceStateTransformer.fromEntityToAPI(entity.state),
       lastScannedAt: entity.lastScannedAt,
       lastScanFailureReason: entity.lastScanFailureReason,
+      dataHolderCount: { ...entity.dataHolderCount },
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     }
@@ -46,6 +47,13 @@ export class VirtualPresenceTransformer {
       state: virtualPresenceStateTransformer.fromGraphQLToEntity(data.state),
       lastScannedAt: new Date(data.lastScannedAtEpochMs),
       lastScanFailureReason: data.lastScanFailureReason ?? undefined,
+      dataHolderCount: {
+        count: data.dataHolderCount.count,
+        monitored: data.dataHolderCount.monitored,
+        initiatedActions: data.dataHolderCount.initiatedActions,
+        completedActions: data.dataHolderCount.completedActions,
+        archived: data.dataHolderCount.archived,
+      },
       createdAt: new Date(data.createdAtEpochMs),
       updatedAt: new Date(data.updatedAtEpochMs),
     }

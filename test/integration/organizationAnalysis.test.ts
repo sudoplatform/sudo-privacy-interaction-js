@@ -10,6 +10,7 @@ import waitForExpect from 'wait-for-expect'
 import {
   AnalysisResultStatus,
   OrganizationAnalysis,
+  OrganizationAnalysisDomainResolution,
   OrganizationAnalysisMode,
   SudoPrivacyInteractionClient,
 } from '../../src/public'
@@ -119,6 +120,47 @@ describe('Organization Analysis Integration Test Suite', () => {
 
       expect(analysis).toBeDefined()
       expectValidAnalysis(analysis!, testDomain)
+    })
+
+    it('analyzes the exact domain when resolution is Exact', async () => {
+      // With Exact resolution the requested domain is analyzed verbatim, so the
+      // returned analysis is keyed by exactly what was requested.
+      const analysis = await instanceUnderTest.getOrganizationAnalysis({
+        domain: testDomain,
+        resolution: OrganizationAnalysisDomainResolution.Exact,
+      })
+
+      expect(analysis).toBeDefined()
+      expectValidAnalysis(analysis!, testDomain)
+    })
+
+    it('reduces a subdomain to its registrable form when resolution is Registrable', async () => {
+      // With Registrable resolution a host/subdomain is reduced to its eTLD+1
+      // form before analysis, so the analysis is keyed by the registrable
+      // domain rather than the requested subdomain.
+      const subdomain = `open.${testDomain}`
+      const analysis = await instanceUnderTest.getOrganizationAnalysis({
+        domain: subdomain,
+        resolution: OrganizationAnalysisDomainResolution.Registrable,
+      })
+
+      expect(analysis).toBeDefined()
+      expectValidAnalysis(analysis!, testDomain)
+    })
+
+    it('analyzes by organization name, falling back to domain', async () => {
+      // `name` is resolved to a domain and takes precedence over `domain` when
+      // it resolves; `domain` remains the fallback. Name resolution may be
+      // unavailable in some environments, so assert only the common analysis
+      // shape against whichever domain the service resolved.
+      const analysis = await instanceUnderTest.getOrganizationAnalysis({
+        domain: testDomain,
+        name: 'spotify',
+      })
+
+      expect(analysis).toBeDefined()
+      expect(analysis?.id).toBe(analysis?.domain)
+      expectValidAnalysis(analysis!, analysis!.domain)
     })
   })
 })

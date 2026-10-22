@@ -24,6 +24,9 @@ import {
   AnalysisResult,
   AnalysisResultConnection,
   Action,
+  ArchiveDataHolderDocument,
+  ArchiveDataHolderMutation,
+  ArchiveDataHolderMutationVariables,
   AvailableActionConnection,
   ConfirmActionOutcomeDocument,
   ConfirmActionOutcomeMutation,
@@ -38,6 +41,9 @@ import {
   DisconnectVirtualPresenceDocument,
   DisconnectVirtualPresenceMutation,
   DisconnectVirtualPresenceMutationVariables,
+  GetActionDocument,
+  GetActionQuery,
+  GetActionQueryVariables,
   GetAnalysisResultDocument,
   GetAnalysisResultQuery,
   GetAnalysisResultQueryVariables,
@@ -55,6 +61,7 @@ import {
   InitiateActionMutation,
   InitiateActionMutationVariables,
   OrganizationAnalysis,
+  OrganizationAnalysisDomainResolution,
   OrganizationAnalysisMode,
   ProviderConfiguration,
   ListAnalysisResultsDocument,
@@ -89,6 +96,9 @@ import {
   RescanVirtualPresenceMutation,
   RescanVirtualPresenceMutationVariables,
   ScanOptionsInput,
+  UnarchiveDataHolderDocument,
+  UnarchiveDataHolderMutation,
+  UnarchiveDataHolderMutationVariables,
   VirtualPresence,
   VirtualPresenceConnection,
 } from '../../../gen/graphqlTypes'
@@ -206,6 +216,24 @@ export class ApiClient {
     return data.listDataHolderScanSummaries
   }
 
+  public async archiveDataHolder(id: string): Promise<DataHolder> {
+    const data = await this.performMutation<ArchiveDataHolderMutation>({
+      mutation: ArchiveDataHolderDocument,
+      variables: { id } as ArchiveDataHolderMutationVariables,
+      calleeName: this.archiveDataHolder.name,
+    })
+    return data.archiveDataHolder
+  }
+
+  public async unarchiveDataHolder(id: string): Promise<DataHolder> {
+    const data = await this.performMutation<UnarchiveDataHolderMutation>({
+      mutation: UnarchiveDataHolderDocument,
+      variables: { id } as UnarchiveDataHolderMutationVariables,
+      calleeName: this.unarchiveDataHolder.name,
+    })
+    return data.unarchiveDataHolder
+  }
+
   public async getAnalysisResult(
     id: string,
   ): Promise<AnalysisResult | undefined> {
@@ -219,13 +247,20 @@ export class ApiClient {
 
   public async getOrganizationAnalysis(input: {
     domain: string
+    name?: string
     mode?: OrganizationAnalysisMode
+    resolution?: OrganizationAnalysisDomainResolution
   }): Promise<OrganizationAnalysis | undefined> {
+    const options =
+      input.mode || input.resolution
+        ? { mode: input.mode, resolution: input.resolution }
+        : undefined
     const data = await this.performQuery<GetOrganizationAnalysisQuery>({
       query: GetOrganizationAnalysisDocument,
       variables: {
         domain: input.domain,
-        mode: input.mode,
+        name: input.name,
+        options,
       } as GetOrganizationAnalysisQueryVariables,
       calleeName: this.getOrganizationAnalysis.name,
     })
@@ -265,6 +300,15 @@ export class ApiClient {
       calleeName: this.confirmActionOutcome.name,
     })
     return data.confirmActionOutcome
+  }
+
+  public async getAction(id: string): Promise<Action | undefined> {
+    const data = await this.performQuery<GetActionQuery>({
+      query: GetActionDocument,
+      variables: { id } as GetActionQueryVariables,
+      calleeName: this.getAction.name,
+    })
+    return data.getAction ?? undefined
   }
 
   public async listAvailableActions(input: {

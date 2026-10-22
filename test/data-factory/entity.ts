@@ -81,6 +81,13 @@ export class EntityDataFactory {
     state: VirtualPresenceStateEntity.Connected,
     lastScannedAt: new Date(2.0),
     lastScanFailureReason: 'TestScanError',
+    dataHolderCount: {
+      count: 6,
+      monitored: 3,
+      initiatedActions: 2,
+      completedActions: 1,
+      archived: 4,
+    },
   }
 
   static readonly dataHolder: DataHolderEntity = {
@@ -130,7 +137,7 @@ export class EntityDataFactory {
     supportsDataDeletionRequests: SignalValueEntity.Yes,
     supportsDataExport: SignalValueEntity.Unknown,
     supportsSubscriptions: SignalValueEntity.No,
-    sellsPersonalInformation: SignalValueEntity.No,
+    supportsOptOutOfSale: SignalValueEntity.No,
     usesCookiesOrTracking: SignalValueEntity.Yes,
     supportsTwoFactorAuth: SignalValueEntity.Yes,
   }

@@ -62,6 +62,13 @@ export class APIDataFactory {
     state: VirtualPresenceState.Connected,
     lastScannedAt: new Date(2.0),
     lastScanFailureReason: 'TestScanError',
+    dataHolderCount: {
+      count: 6,
+      monitored: 3,
+      initiatedActions: 2,
+      completedActions: 1,
+      archived: 4,
+    },
   }
 
   static readonly dataHolder: DataHolder = {
@@ -111,6 +118,7 @@ export class APIDataFactory {
     supportsDataDeletionRequests: SignalValue.Yes,
     supportsDataExport: SignalValue.Unknown,
     supportsSubscriptions: SignalValue.No,
+    supportsOptOutOfSale: SignalValue.No,
     sellsPersonalInformation: SignalValue.No,
     usesCookiesOrTracking: SignalValue.Yes,
     supportsTwoFactorAuth: SignalValue.Yes,

@@ -80,6 +80,18 @@ export interface ActionService {
   initiate(input: InitiateActionInput): Promise<ActionEntity>
 
   /**
+   * Read a single initiated action by id. Resolves an in-flight delegated
+   * action on read: if the action is still in progress, its outcome is polled
+   * and, once terminal, the action is updated to its verified result before
+   * being returned.
+   *
+   * @param {string} id The unique identifier of the action.
+   * @returns {ActionEntity | undefined} The action, or undefined if no action
+   *  with the given id exists for the user.
+   */
+  get(id: string): Promise<ActionEntity | undefined>
+
+  /**
    * Confirm that an assisted or delegated action was completed, transitioning it
    * from `CompletedUnverified` to `CompletedVerified`.
    *

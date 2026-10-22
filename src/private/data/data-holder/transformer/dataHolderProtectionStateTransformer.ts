@@ -19,6 +19,8 @@ export class DataHolderProtectionStateTransformer {
         return DataHolderProtectionState.ActionRequested
       case DataHolderProtectionStateEntity.Resolved:
         return DataHolderProtectionState.Resolved
+      case DataHolderProtectionStateEntity.Archived:
+        return DataHolderProtectionState.Archived
       case DataHolderProtectionStateEntity.Unknown:
         return DataHolderProtectionState.Unknown
     }
@@ -34,6 +36,8 @@ export class DataHolderProtectionStateTransformer {
         return DataHolderProtectionStateEntity.ActionRequested
       case 'RESOLVED':
         return DataHolderProtectionStateEntity.Resolved
+      case 'ARCHIVED':
+        return DataHolderProtectionStateEntity.Archived
       default:
         return DataHolderProtectionStateEntity.Unknown
     }

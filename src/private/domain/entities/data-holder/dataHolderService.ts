@@ -115,6 +115,24 @@ export interface DataHolderService {
   ): Promise<ListDataHolderScanSummariesOutput>
 
   /**
+   * Archive a data holder, removing it from the user's active list.
+   *
+   * @param {string} id The unique identifier of the data holder to archive.
+   * @returns {DataHolderEntity} The archived data holder.
+   */
+  archive(id: string): Promise<DataHolderEntity>
+
+  /**
+   * Unarchive a previously archived data holder, returning it to the
+   * `Monitored` state. Only a data holder in the `Archived` state may be
+   * unarchived.
+   *
+   * @param {string} id The unique identifier of the data holder to unarchive.
+   * @returns {DataHolderEntity} The unarchived data holder.
+   */
+  unarchive(id: string): Promise<DataHolderEntity>
+
+  /**
    * Subscribe to data holder state events.
    *
    * @param {SubscribeToDataHoldersInput} input Parameters used to subscribe to data

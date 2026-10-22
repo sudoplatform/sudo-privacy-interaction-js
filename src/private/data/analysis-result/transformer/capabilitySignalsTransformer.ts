@@ -30,8 +30,8 @@ export class CapabilitySignalsTransformer {
       supportsSubscriptions: this.signalValueTransformer.fromGraphQLToEntity(
         data.supportsSubscriptions,
       ),
-      sellsPersonalInformation: this.signalValueTransformer.fromGraphQLToEntity(
-        data.sellsPersonalInformation,
+      supportsOptOutOfSale: this.signalValueTransformer.fromGraphQLToEntity(
+        data.supportsOptOutOfSale,
       ),
       usesCookiesOrTracking: this.signalValueTransformer.fromGraphQLToEntity(
         data.usesCookiesOrTracking,
@@ -59,8 +59,13 @@ export class CapabilitySignalsTransformer {
       supportsSubscriptions: this.signalValueTransformer.fromEntityToAPI(
         entity.supportsSubscriptions,
       ),
+      supportsOptOutOfSale: this.signalValueTransformer.fromEntityToAPI(
+        entity.supportsOptOutOfSale,
+      ),
+      // Deprecated: surfaced for backward compatibility, populated from
+      // `supportsOptOutOfSale`.
       sellsPersonalInformation: this.signalValueTransformer.fromEntityToAPI(
-        entity.sellsPersonalInformation,
+        entity.supportsOptOutOfSale,
       ),
       usesCookiesOrTracking: this.signalValueTransformer.fromEntityToAPI(
         entity.usesCookiesOrTracking,

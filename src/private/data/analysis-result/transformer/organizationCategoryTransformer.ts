@@ -13,6 +13,8 @@ export class OrganizationCategoryTransformer {
     data: OrganizationCategoryGraphQL,
   ): OrganizationCategoryEntity {
     switch (data) {
+      case 'AdultEntertainment':
+        return OrganizationCategoryEntity.AdultEntertainment
       case 'Automotive':
         return OrganizationCategoryEntity.Automotive
       case 'Communications':
@@ -78,6 +80,8 @@ export class OrganizationCategoryTransformer {
 
   fromEntityToAPI(entity: OrganizationCategoryEntity): OrganizationCategory {
     switch (entity) {
+      case OrganizationCategoryEntity.AdultEntertainment:
+        return OrganizationCategory.AdultEntertainment
       case OrganizationCategoryEntity.Automotive:
         return OrganizationCategory.Automotive
       case OrganizationCategoryEntity.Communications:

@@ -198,6 +198,51 @@ describe('Data Holder Integration Test Suite', () => {
     })
   })
 
+  describe('archiveDataHolder / unarchiveDataHolder', () => {
+    it('archives a data holder then unarchives it back to monitored', async () => {
+      // Seed an email and connect so discovery surfaces at least one data holder.
+      const providerIdentity = 'dh-archive@example.com'
+      await seedTestEmails(providerIdentity)
+      const connectedVp =
+        await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
+          refreshToken: 'test-refresh-token',
+          providerIdentity,
+          relationshipProvider,
+        })
+      connectedIds.add(connectedVp.id)
+
+      let dataHolderId: string | undefined
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listDataHolders({
+            virtualPresenceId: connectedVp.id,
+          })
+          expect(result.items.length).toBeGreaterThan(0)
+          dataHolderId = result.items[0].id
+        },
+        60000,
+        3000,
+      )
+
+      // Archive the data holder; it should transition to ARCHIVED.
+      const archived = await instanceUnderTest.archiveDataHolder(dataHolderId!)
+      expect(archived.id).toBe(dataHolderId)
+      expect(archived.protectionState).toBe(DataHolderProtectionState.Archived)
+      expect(archived.updatedAt).toBeInstanceOf(Date)
+
+      // Unarchive it; only an ARCHIVED data holder may be unarchived and it
+      // returns to MONITORED.
+      const unarchived = await instanceUnderTest.unarchiveDataHolder(
+        dataHolderId!,
+      )
+      expect(unarchived.id).toBe(dataHolderId)
+      expect(unarchived.protectionState).toBe(
+        DataHolderProtectionState.Monitored,
+      )
+      expect(unarchived.updatedAt).toBeInstanceOf(Date)
+    })
+  })
+
   describe('data holder subscriptions', () => {
     it('successfully subscribes and receives connected state', async () => {
       const subscriptionId = v4()

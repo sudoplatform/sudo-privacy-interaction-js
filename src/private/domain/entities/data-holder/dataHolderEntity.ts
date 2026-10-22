@@ -42,6 +42,7 @@ export interface DataHolderEntity {
  * @property MONITORED The data holder is being monitored.
  * @property ACTION_REQUESTED An action has been requested against this data holder.
  * @property RESOLVED The data holder has been resolved.
+ * @property ARCHIVED The data holder has been archived by the user.
  *
  * @enum
  */
@@ -49,6 +50,7 @@ export enum DataHolderProtectionStateEntity {
   Monitored = 'MONITORED',
   ActionRequested = 'ACTION_REQUESTED',
   Resolved = 'RESOLVED',
+  Archived = 'ARCHIVED',
   Unknown = 'UNKNOWN',
 }
 

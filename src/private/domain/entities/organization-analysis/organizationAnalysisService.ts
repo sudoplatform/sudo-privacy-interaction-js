@@ -5,6 +5,7 @@
  */
 
 import {
+  OrganizationAnalysisDomainResolutionEntity,
   OrganizationAnalysisEntity,
   OrganizationAnalysisModeEntity,
 } from './organizationAnalysisEntity'
@@ -14,12 +15,19 @@ import {
  *
  * @interface GetOrganizationAnalysisInput
  * @property {string} domain The domain to analyze.
+ * @property {string} name Organization name to analyze (e.g. "amazon", "stripe"). When it resolves
+ *  to a domain it takes precedence over `domain`; `domain` remains required and is used as the
+ *  fallback when the name cannot be resolved.
  * @property {OrganizationAnalysisModeEntity} mode How to obtain source results. When omitted,
  *  the backend behaves as ANALYZE.
+ * @property {OrganizationAnalysisDomainResolutionEntity} resolution How the requested domain is
+ *  treated before analysis.
  */
 export interface GetOrganizationAnalysisInput {
   domain: string
+  name?: string
   mode?: OrganizationAnalysisModeEntity
+  resolution?: OrganizationAnalysisDomainResolutionEntity
 }
 
 /**

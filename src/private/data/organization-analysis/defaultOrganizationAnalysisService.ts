@@ -10,6 +10,7 @@ import {
   OrganizationAnalysisService,
 } from '../../domain/entities/organization-analysis/organizationAnalysisService'
 import { ApiClient } from '../common/apiClient'
+import { OrganizationAnalysisDomainResolutionTransformer } from './transformer/organizationAnalysisDomainResolutionTransformer'
 import { OrganizationAnalysisModeTransformer } from './transformer/organizationAnalysisModeTransformer'
 import { OrganizationAnalysisTransformer } from './transformer/organizationAnalysisTransformer'
 
@@ -17,6 +18,8 @@ export class DefaultOrganizationAnalysisService implements OrganizationAnalysisS
   private readonly organizationAnalysisTransformer =
     new OrganizationAnalysisTransformer()
   private readonly modeTransformer = new OrganizationAnalysisModeTransformer()
+  private readonly resolutionTransformer =
+    new OrganizationAnalysisDomainResolutionTransformer()
 
   constructor(private readonly appSync: ApiClient) {}
 
@@ -25,8 +28,12 @@ export class DefaultOrganizationAnalysisService implements OrganizationAnalysisS
   ): Promise<OrganizationAnalysisEntity | undefined> {
     const result = await this.appSync.getOrganizationAnalysis({
       domain: input.domain,
+      name: input.name,
       mode: input.mode
         ? this.modeTransformer.fromEntityToGraphQL(input.mode)
+        : undefined,
+      resolution: input.resolution
+        ? this.resolutionTransformer.fromEntityToGraphQL(input.resolution)
         : undefined,
     })
     if (!result) {

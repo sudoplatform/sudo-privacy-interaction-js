@@ -19,6 +19,8 @@
  * @property {Date} lastScannedAt Date for when the virtual presence was last scanned.
  * @property {string} lastScanFailureReason Reason the most recent completed scan failed (an error/exception name).
  *  Undefined when the most recent completed scan succeeded (or none has completed).
+ * @property {DataHolderCount} dataHolderCount Counts of this virtual presence's data holders,
+ *  broken down by protection state.
  * @property {Date} createdAt Date for when the virtual presence was created.
  * @property {Date} updatedAt Date for when the virtual presence was last updated.
  */
@@ -31,8 +33,32 @@ export interface VirtualPresence {
   state: VirtualPresenceState
   lastScannedAt: Date
   lastScanFailureReason?: string
+  dataHolderCount: DataHolderCount
   createdAt: Date
   updatedAt: Date
+}
+
+/**
+ * Counts of a virtual presence's data holders, broken down by protection state.
+ *
+ * @interface DataHolderCount
+ * @property {number} count Active (non-archived) data holders: the sum of monitored,
+ *  initiatedActions, and completedActions. Excludes archived.
+ * @property {number} monitored Data holders the system has identified
+ *  (protection state Monitored).
+ * @property {number} initiatedActions Data holders with an action in progress
+ *  (protection state ActionRequested).
+ * @property {number} completedActions Data holders whose action has completed
+ *  (protection state Resolved).
+ * @property {number} archived Data holders the user has archived
+ *  (protection state Archived).
+ */
+export interface DataHolderCount {
+  count: number
+  monitored: number
+  initiatedActions: number
+  completedActions: number
+  archived: number
 }
 
 /**

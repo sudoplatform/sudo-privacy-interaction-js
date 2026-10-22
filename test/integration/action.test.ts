@@ -267,6 +267,63 @@ describe('Action Integration Test Suite', () => {
     })
   })
 
+  describe('getAction', () => {
+    it('reads back an initiated action by id', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
+      const { dataHolderId } = await connectAndDiscoverDataHolder(
+        'action-get@example.com',
+      )
+
+      let stopContact: AvailableAction | undefined
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAvailableActions({
+            dataHolderId,
+          })
+          stopContact = result.items.find(
+            (action) => action.intent === ActionIntent.StopContact,
+          )
+          expect(stopContact).toBeDefined()
+        },
+        60000,
+        3000,
+      )
+
+      const initiated = await instanceUnderTest.initiateAction({
+        dataHolderId,
+        intent: ActionIntent.StopContact,
+        fulfilmentMethod: stopContact!.fulfilmentMethod,
+      })
+
+      const fetched = await instanceUnderTest.getAction(initiated.id)
+
+      expect(fetched).toBeDefined()
+      expect(fetched?.id).toBe(initiated.id)
+      expect(fetched?.dataHolderId).toBe(dataHolderId)
+      expect(fetched?.intent).toBe(ActionIntent.StopContact)
+      expect(fetched?.fulfilmentMethod).toBe(initiated.fulfilmentMethod)
+      expect(Object.values(ActionStatus)).toContain(fetched?.status)
+      expect(fetched?.owner).toBeDefined()
+      expect(fetched?.createdAt).toBeInstanceOf(Date)
+      expect(fetched?.updatedAt).toBeInstanceOf(Date)
+    })
+
+    it('returns undefined for a non-existent action id', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
+      const result = await instanceUnderTest.getAction('non-existent-action-id')
+
+      expect(result).toBeUndefined()
+    })
+  })
+
   describe('action subscriptions', () => {
     it('successfully subscribes and receives connected state', async (ctx) => {
       if (!testProviderEnabled) {
@@ -442,7 +499,7 @@ describe('Action Integration Test Suite', () => {
   })
 
   describe('confirmActionOutcome', () => {
-    it('confirms an action once it reaches COMPLETED_UNVERIFIED via the status subscription', async (ctx) => {
+    it('idempotently confirms an action that has already reached COMPLETED_VERIFIED', async (ctx) => {
       if (!testProviderEnabled) {
         ctx.skip()
         return
@@ -490,34 +547,11 @@ describe('Action Integration Test Suite', () => {
         fulfilmentMethod: stopContact!.fulfilmentMethod,
       })
 
-      // Wait for the action to progress to COMPLETED_UNVERIFIED. Progression is
-      // driven by the service and surfaced via the status subscription, so we
-      // observe it there rather than polling.
-      await waitForExpect(
-        () => {
-          expect(
-            receivedActions.some(
-              (action) =>
-                action.id === initiated.id &&
-                action.status === ActionStatus.CompletedUnverified,
-            ),
-          ).toBe(true)
-        },
-        120000,
-        3000,
-      )
-
-      // Confirm the outcome; the action should transition to COMPLETED_VERIFIED.
-      const confirmed = await instanceUnderTest.confirmActionOutcome(
-        initiated.id,
-      )
-
-      expect(confirmed.id).toBe(initiated.id)
-      expect(confirmed.status).toBe(ActionStatus.CompletedVerified)
-      expect(confirmed.intent).toBe(ActionIntent.StopContact)
-      expect(confirmed.updatedAt).toBeInstanceOf(Date)
-
-      // The confirmation should itself be published to the status subscription.
+      // No currently supported action path parks an action at
+      // COMPLETED_UNVERIFIED; a delegated action is resolved on read/progression
+      // straight through to COMPLETED_VERIFIED. Progression is driven by the
+      // service and surfaced via the status subscription, so we observe it there
+      // rather than polling.
       await waitForExpect(
         () => {
           expect(
@@ -528,9 +562,28 @@ describe('Action Integration Test Suite', () => {
             ),
           ).toBe(true)
         },
-        60000,
+        120000,
         3000,
       )
+
+      // Confirming an action that is already COMPLETED_VERIFIED is idempotent:
+      // it succeeds without error and leaves the action in COMPLETED_VERIFIED.
+      const confirmed = await instanceUnderTest.confirmActionOutcome(
+        initiated.id,
+      )
+
+      expect(confirmed.id).toBe(initiated.id)
+      expect(confirmed.status).toBe(ActionStatus.CompletedVerified)
+      expect(confirmed.intent).toBe(ActionIntent.StopContact)
+      expect(confirmed.updatedAt).toBeInstanceOf(Date)
+
+      // A second confirmation must also be a safe no-op, still returning the
+      // action in its verified terminal state.
+      const reconfirmed = await instanceUnderTest.confirmActionOutcome(
+        initiated.id,
+      )
+      expect(reconfirmed.id).toBe(initiated.id)
+      expect(reconfirmed.status).toBe(ActionStatus.CompletedVerified)
 
       instanceUnderTest.unsubscribeFromActions(subscriptionId)
     })

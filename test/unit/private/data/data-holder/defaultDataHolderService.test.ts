@@ -68,6 +68,58 @@ describe('DefaultDataHolderService Test Suite', () => {
     })
   })
 
+  describe('archive', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.archiveDataHolder(anything())).thenResolve(
+        GraphQLDataFactory.dataHolder,
+      )
+
+      const result = await instanceUnderTest.archive('testId')
+
+      expect(result).toStrictEqual(EntityDataFactory.dataHolder)
+      const [idArg] = capture(mockAppSync.archiveDataHolder).first()
+      expect(idArg).toBe('testId')
+      verify(mockAppSync.archiveDataHolder(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.archiveDataHolder(anything())).thenReject(
+        new Error('GraphQL error'),
+      )
+
+      await expect(instanceUnderTest.archive('testId')).rejects.toThrow(
+        'GraphQL error',
+      )
+      verify(mockAppSync.archiveDataHolder(anything())).once()
+    })
+  })
+
+  describe('unarchive', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.unarchiveDataHolder(anything())).thenResolve(
+        GraphQLDataFactory.dataHolder,
+      )
+
+      const result = await instanceUnderTest.unarchive('testId')
+
+      expect(result).toStrictEqual(EntityDataFactory.dataHolder)
+      const [idArg] = capture(mockAppSync.unarchiveDataHolder).first()
+      expect(idArg).toBe('testId')
+      verify(mockAppSync.unarchiveDataHolder(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.unarchiveDataHolder(anything())).thenReject(
+        new Error('GraphQL error'),
+      )
+
+      await expect(instanceUnderTest.unarchive('testId')).rejects.toThrow(
+        'GraphQL error',
+      )
+      verify(mockAppSync.unarchiveDataHolder(anything())).once()
+    })
+  })
+
   describe('list', () => {
     it('calls appSync and returns result correctly', async () => {
       when(mockAppSync.listDataHolders(anything())).thenResolve({

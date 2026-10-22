@@ -42,8 +42,12 @@ query GetAnalysisResult($id: ID!) {
   }
 }
 
-query GetOrganizationAnalysis($domain: String!, $mode: OrganizationAnalysisMode) {
-  getOrganizationAnalysis(domain: $domain, mode: $mode) {
+query GetOrganizationAnalysis(
+  $domain: String!
+  $name: String
+  $options: OrganizationAnalysisOptions
+) {
+  getOrganizationAnalysis(domain: $domain, name: $name, options: $options) {
     ...OrganizationAnalysisFields
   }
 }
@@ -88,5 +92,11 @@ query ListAvailableActions($dataHolderId: ID!) {
       ...AvailableActionFields
     }
     nextToken
+  }
+}
+
+query GetAction($id: ID!) {
+  getAction(id: $id) {
+    ...ActionFields
   }
 }

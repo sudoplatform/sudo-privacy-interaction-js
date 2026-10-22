@@ -72,6 +72,41 @@ describe('DefaultActionService Test Suite', () => {
     })
   })
 
+  describe('get', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.getAction(anything())).thenResolve(
+        GraphQLDataFactory.action,
+      )
+
+      const result = await instanceUnderTest.get('testId')
+
+      expect(result).toStrictEqual(EntityDataFactory.action)
+      const [idArg] = capture(mockAppSync.getAction).first()
+      expect(idArg).toBe('testId')
+      verify(mockAppSync.getAction(anything())).once()
+    })
+
+    it('returns undefined when appSync returns no action', async () => {
+      when(mockAppSync.getAction(anything())).thenResolve(undefined)
+
+      const result = await instanceUnderTest.get('nonExistentId')
+
+      expect(result).toBeUndefined()
+      verify(mockAppSync.getAction(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.getAction(anything())).thenReject(
+        new Error('GraphQL error'),
+      )
+
+      await expect(instanceUnderTest.get('testId')).rejects.toThrow(
+        'GraphQL error',
+      )
+      verify(mockAppSync.getAction(anything())).once()
+    })
+  })
+
   describe('confirmOutcome', () => {
     it('calls appSync and returns result correctly', async () => {
       when(mockAppSync.confirmActionOutcome(anything())).thenResolve(

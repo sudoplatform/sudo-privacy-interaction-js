@@ -37,7 +37,7 @@ fragment AnalysisResultDataFields on AnalysisResultData {
     supportsDataDeletionRequests
     supportsDataExport
     supportsSubscriptions
-    sellsPersonalInformation
+    supportsOptOutOfSale
     usesCookiesOrTracking
     supportsTwoFactorAuth
   }

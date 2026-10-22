@@ -54,3 +54,19 @@ export enum OrganizationAnalysisMode {
   Analyze = 'ANALYZE',
   Fetch = 'FETCH',
 }
+
+/**
+ * Controls how `getOrganizationAnalysis` treats the requested domain before
+ * sources query their backing services.
+ *
+ * @property Registrable Reduce the domain to its registrable (eTLD+1) form before analysis,
+ *  e.g. `mail.sub.example.co.uk` becomes `example.co.uk`.
+ * @property Exact Analyze the domain verbatim, without reducing it to a registrable domain.
+ *  Used to analyze a specific host/subdomain rather than the organization.
+ *
+ * @enum
+ */
+export enum OrganizationAnalysisDomainResolution {
+  Registrable = 'REGISTRABLE',
+  Exact = 'EXACT',
+}

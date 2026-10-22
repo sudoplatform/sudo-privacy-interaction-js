@@ -275,7 +275,9 @@ export interface CategorySignals {
  * @property {SignalValue} supportsDataDeletionRequests Whether the organization supports data deletion requests.
  * @property {SignalValue} supportsDataExport Whether the organization supports data export.
  * @property {SignalValue} supportsSubscriptions Whether the organization supports subscription management.
+ * @property {SignalValue} supportsOptOutOfSale Whether the organization exposes an opt-out-of-sale control to users.
  * @property {SignalValue} sellsPersonalInformation Whether the organization sells personal information.
+ *  @deprecated Use {@link CapabilitySignals.supportsOptOutOfSale} instead. Populated from `supportsOptOutOfSale`.
  * @property {SignalValue} usesCookiesOrTracking Whether the organization uses cookies or tracking.
  * @property {SignalValue} supportsTwoFactorAuth Whether the organization supports two-factor auth for logins.
  */
@@ -285,6 +287,11 @@ export interface CapabilitySignals {
   supportsDataDeletionRequests: SignalValue
   supportsDataExport: SignalValue
   supportsSubscriptions: SignalValue
+  supportsOptOutOfSale: SignalValue
+  /**
+   * @deprecated Use {@link CapabilitySignals.supportsOptOutOfSale} instead.
+   *  Populated from the `supportsOptOutOfSale` value.
+   */
   sellsPersonalInformation: SignalValue
   usesCookiesOrTracking: SignalValue
   supportsTwoFactorAuth: SignalValue
@@ -319,6 +326,7 @@ export interface RiskIndicators {
  * @enum
  */
 export enum OrganizationCategory {
+  AdultEntertainment = 'AdultEntertainment',
   Automotive = 'Automotive',
   Communications = 'Communications',
   CommunityAndCharity = 'CommunityAndCharity',

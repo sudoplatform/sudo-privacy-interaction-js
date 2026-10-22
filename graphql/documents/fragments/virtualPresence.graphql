@@ -5,6 +5,13 @@ fragment VirtualPresenceFields on VirtualPresence {
   state
   lastScannedAtEpochMs
   lastScanFailureReason
+  dataHolderCount {
+    count
+    monitored
+    initiatedActions
+    completedActions
+    archived
+  }
   owner
   version
   createdAtEpochMs

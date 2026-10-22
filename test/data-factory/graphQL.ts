@@ -53,6 +53,13 @@ export class GraphQLDataFactory {
     state: 'CONNECTED',
     lastScannedAtEpochMs: 2.0,
     lastScanFailureReason: 'TestScanError',
+    dataHolderCount: {
+      count: 6,
+      monitored: 3,
+      initiatedActions: 2,
+      completedActions: 1,
+      archived: 4,
+    },
   }
 
   static readonly dataHolder: DataHolderFieldsFragment = {
@@ -102,7 +109,7 @@ export class GraphQLDataFactory {
     supportsDataDeletionRequests: 'YES',
     supportsDataExport: 'UNKNOWN',
     supportsSubscriptions: 'NO',
-    sellsPersonalInformation: 'NO',
+    supportsOptOutOfSale: 'NO',
     usesCookiesOrTracking: 'YES',
     supportsTwoFactorAuth: 'YES',
   }

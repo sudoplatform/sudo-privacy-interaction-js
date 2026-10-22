@@ -77,6 +77,16 @@ export class DefaultDataHolderService implements DataHolderService {
     }
   }
 
+  async archive(id: string): Promise<DataHolderEntity> {
+    const result = await this.appSync.archiveDataHolder(id)
+    return this.dataHolderTransformer.fromGraphQLToEntity(result)
+  }
+
+  async unarchive(id: string): Promise<DataHolderEntity> {
+    const result = await this.appSync.unarchiveDataHolder(id)
+    return this.dataHolderTransformer.fromGraphQLToEntity(result)
+  }
+
   async subscribe(input: SubscribeToDataHoldersInput): Promise<void> {
     this.subscriptionManager.subscribe(input.subscriptionId, input.subscriber)
 

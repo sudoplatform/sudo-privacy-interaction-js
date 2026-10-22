@@ -22,12 +22,14 @@ import { DefaultProviderConfigurationService } from '../private/data/provider-co
 import { ProviderConfigurationTransformer } from '../private/data/provider-configuration/transformer/providerConfigurationTransformer'
 import { DefaultOrganizationAnalysisService } from '../private/data/organization-analysis/defaultOrganizationAnalysisService'
 import { OrganizationAnalysisModeTransformer } from '../private/data/organization-analysis/transformer/organizationAnalysisModeTransformer'
+import { OrganizationAnalysisDomainResolutionTransformer } from '../private/data/organization-analysis/transformer/organizationAnalysisDomainResolutionTransformer'
 import { OrganizationAnalysisTransformer } from '../private/data/organization-analysis/transformer/organizationAnalysisTransformer'
 import { DefaultVirtualPresenceService } from '../private/data/virtual-presence/defaultVirtualPresenceService'
 import { RelationshipProviderTransformer } from '../private/data/virtual-presence/transformer/relationshipProviderTransformer'
 import { VirtualPresenceTransformer } from '../private/data/virtual-presence/transformer/virtualPresenceTransformer'
 import { GetAnalysisResultUseCase } from '../private/domain/use-cases/analysis-result/getAnalysisResultUseCase'
 import { ConfirmActionOutcomeUseCase } from '../private/domain/use-cases/action/confirmActionOutcomeUseCase'
+import { GetActionUseCase } from '../private/domain/use-cases/action/getActionUseCase'
 import { InitiateActionUseCase } from '../private/domain/use-cases/action/initiateActionUseCase'
 import { ListAvailableActionsUseCase } from '../private/domain/use-cases/action/listAvailableActionsUseCase'
 import { SubscribeToActionUseCase } from '../private/domain/use-cases/action/subscribeToActionUseCase'
@@ -38,6 +40,8 @@ import { UnsubscribeFromAnalysisResultUseCase } from '../private/domain/use-case
 import { GetProviderConfigurationUseCase } from '../private/domain/use-cases/configuration/getProviderConfigurationUseCase'
 import { GetOrganizationAnalysisUseCase } from '../private/domain/use-cases/organization-analysis/getOrganizationAnalysisUseCase'
 import { GetDataHolderUseCase } from '../private/domain/use-cases/data-holder/getDataHolderUseCase'
+import { ArchiveDataHolderUseCase } from '../private/domain/use-cases/data-holder/archiveDataHolderUseCase'
+import { UnarchiveDataHolderUseCase } from '../private/domain/use-cases/data-holder/unarchiveDataHolderUseCase'
 import { ListDataHolderScanSummariesUseCase } from '../private/domain/use-cases/data-holder/listDataHolderScanSummariesUseCase'
 import { ListDataHoldersUseCase } from '../private/domain/use-cases/data-holder/listDataHoldersUseCase'
 import { SubscribeToDataHoldersUseCase } from '../private/domain/use-cases/data-holder/subscribeToDataHoldersUseCase'
@@ -76,6 +80,7 @@ import {
   DataHolderScanSummary,
   DataHolderSubscriber,
   OrganizationAnalysis,
+  OrganizationAnalysisDomainResolution,
   ProviderConfiguration,
   VirtualPresence,
   VirtualPresenceSubscriber,
@@ -98,6 +103,7 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
   private readonly analysisResultTransformer: AnalysisResultTransformer
   private readonly organizationAnalysisTransformer: OrganizationAnalysisTransformer
   private readonly organizationAnalysisModeTransformer: OrganizationAnalysisModeTransformer
+  private readonly organizationAnalysisDomainResolutionTransformer: OrganizationAnalysisDomainResolutionTransformer
   private readonly actionTransformer: ActionTransformer
   private readonly availableActionTransformer: AvailableActionTransformer
   private readonly actionIntentTransformer: ActionIntentTransformer
@@ -139,6 +145,8 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     this.organizationAnalysisTransformer = new OrganizationAnalysisTransformer()
     this.organizationAnalysisModeTransformer =
       new OrganizationAnalysisModeTransformer()
+    this.organizationAnalysisDomainResolutionTransformer =
+      new OrganizationAnalysisDomainResolutionTransformer()
     this.actionTransformer = new ActionTransformer()
     this.availableActionTransformer = new AvailableActionTransformer()
     this.actionIntentTransformer = new ActionIntentTransformer()
@@ -350,6 +358,20 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     return { items: transformedScanSummaries, nextToken: resultNextToken }
   }
 
+  public async archiveDataHolder(id: string): Promise<DataHolder> {
+    this.log.debug(this.archiveDataHolder.name, { id })
+    const useCase = new ArchiveDataHolderUseCase(this.dataHolderService)
+    const result = await useCase.execute(id)
+    return this.dataHolderTransformer.fromEntityToAPI(result)
+  }
+
+  public async unarchiveDataHolder(id: string): Promise<DataHolder> {
+    this.log.debug(this.unarchiveDataHolder.name, { id })
+    const useCase = new UnarchiveDataHolderUseCase(this.dataHolderService)
+    const result = await useCase.execute(id)
+    return this.dataHolderTransformer.fromEntityToAPI(result)
+  }
+
   public async subscribeToDataHolders(
     subscriptionId: string,
     subscriber: DataHolderSubscriber,
@@ -436,9 +458,14 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     )
     const result = await useCase.execute({
       domain: input.domain,
+      name: input.name,
       mode: input.mode
         ? this.organizationAnalysisModeTransformer.fromAPIToEntity(input.mode)
         : undefined,
+      resolution:
+        this.organizationAnalysisDomainResolutionTransformer.fromAPIToEntity(
+          input.resolution ?? OrganizationAnalysisDomainResolution.Exact,
+        ),
     })
     if (!result) {
       return undefined
@@ -456,6 +483,16 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
         input.fulfilmentMethod,
       ),
     })
+    return this.actionTransformer.fromEntityToAPI(result)
+  }
+
+  public async getAction(id: string): Promise<Action | undefined> {
+    this.log.debug(this.getAction.name, { id })
+    const useCase = new GetActionUseCase(this.actionService)
+    const result = await useCase.execute(id)
+    if (!result) {
+      return undefined
+    }
     return this.actionTransformer.fromEntityToAPI(result)
   }
 

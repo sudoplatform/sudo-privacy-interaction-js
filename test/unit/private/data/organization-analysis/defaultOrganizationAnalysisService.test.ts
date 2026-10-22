@@ -15,7 +15,10 @@ import {
 } from 'ts-mockito'
 import { ApiClient } from '../../../../../src/private/data/common/apiClient'
 import { DefaultOrganizationAnalysisService } from '../../../../../src/private/data/organization-analysis/defaultOrganizationAnalysisService'
-import { OrganizationAnalysisModeEntity } from '../../../../../src/private/domain/entities/organization-analysis/organizationAnalysisEntity'
+import {
+  OrganizationAnalysisDomainResolutionEntity,
+  OrganizationAnalysisModeEntity,
+} from '../../../../../src/private/domain/entities/organization-analysis/organizationAnalysisEntity'
 import { EntityDataFactory } from '../../../../data-factory/entity'
 import { GraphQLDataFactory } from '../../../../data-factory/graphQL'
 
@@ -43,8 +46,32 @@ describe('DefaultOrganizationAnalysisService Test Suite', () => {
 
       expect(result).toStrictEqual(EntityDataFactory.organizationAnalysis)
       const [inputArg] = capture(mockAppSync.getOrganizationAnalysis).first()
-      expect(inputArg).toStrictEqual({ domain: 'example.com', mode: undefined })
+      expect(inputArg).toStrictEqual({
+        domain: 'example.com',
+        name: undefined,
+        mode: undefined,
+        resolution: undefined,
+      })
       verify(mockAppSync.getOrganizationAnalysis(anything())).once()
+    })
+
+    it('forwards the name when provided', async () => {
+      when(mockAppSync.getOrganizationAnalysis(anything())).thenResolve(
+        GraphQLDataFactory.organizationAnalysis,
+      )
+
+      await instanceUnderTest.getOrganizationAnalysis({
+        domain: 'example.com',
+        name: 'Example',
+      })
+
+      const [inputArg] = capture(mockAppSync.getOrganizationAnalysis).first()
+      expect(inputArg).toStrictEqual({
+        domain: 'example.com',
+        name: 'Example',
+        mode: undefined,
+        resolution: undefined,
+      })
     })
 
     it('transforms the mode to GraphQL when provided', async () => {
@@ -58,7 +85,31 @@ describe('DefaultOrganizationAnalysisService Test Suite', () => {
       })
 
       const [inputArg] = capture(mockAppSync.getOrganizationAnalysis).first()
-      expect(inputArg).toStrictEqual({ domain: 'example.com', mode: 'FETCH' })
+      expect(inputArg).toStrictEqual({
+        domain: 'example.com',
+        name: undefined,
+        mode: 'FETCH',
+        resolution: undefined,
+      })
+    })
+
+    it('transforms the resolution to GraphQL when provided', async () => {
+      when(mockAppSync.getOrganizationAnalysis(anything())).thenResolve(
+        GraphQLDataFactory.organizationAnalysis,
+      )
+
+      await instanceUnderTest.getOrganizationAnalysis({
+        domain: 'example.com',
+        resolution: OrganizationAnalysisDomainResolutionEntity.Exact,
+      })
+
+      const [inputArg] = capture(mockAppSync.getOrganizationAnalysis).first()
+      expect(inputArg).toStrictEqual({
+        domain: 'example.com',
+        name: undefined,
+        mode: undefined,
+        resolution: 'EXACT',
+      })
     })
 
     it('returns undefined when appSync returns undefined', async () => {

@@ -27,3 +27,15 @@ mutation ConfirmActionOutcome($id: ID!) {
     ...ActionFields
   }
 }
+
+mutation ArchiveDataHolder($id: ID!) {
+  archiveDataHolder(id: $id) {
+    ...DataHolderFields
+  }
+}
+
+mutation UnarchiveDataHolder($id: ID!) {
+  unarchiveDataHolder(id: $id) {
+    ...DataHolderFields
+  }
+}

@@ -146,6 +146,24 @@ export interface SudoPrivacyInteractionClient {
   ): Promise<ListOutput<DataHolderScanSummary>>
 
   /**
+   * Archive a data holder, removing it from the user's active list.
+   *
+   * @param {string} id The unique identifier of the data holder to archive.
+   * @returns {DataHolder} The archived data holder.
+   */
+  archiveDataHolder(id: string): Promise<DataHolder>
+
+  /**
+   * Unarchive a previously archived data holder, returning it to the
+   * `Monitored` state. Only a data holder in the `Archived` state may be
+   * unarchived.
+   *
+   * @param {string} id The unique identifier of the data holder to unarchive.
+   * @returns {DataHolder} The unarchived data holder.
+   */
+  unarchiveDataHolder(id: string): Promise<DataHolder>
+
+  /**
    * Subscribe to data holder state events. Emitted when data holders are discovered
    * or updated during scanning.
    *
@@ -225,6 +243,18 @@ export interface SudoPrivacyInteractionClient {
    * @returns {Action} The initiated action.
    */
   initiateAction(input: InitiateActionInput): Promise<Action>
+
+  /**
+   * Read a single initiated action by id. Resolves an in-flight delegated
+   * action on read: if the action is still in progress, its outcome is polled
+   * and, once terminal, the action is updated to its verified result before
+   * being returned.
+   *
+   * @param {string} id The unique identifier of the action.
+   * @returns {Action | undefined} The action, or undefined if no action with the
+   *  given id exists for the user.
+   */
+  getAction(id: string): Promise<Action | undefined>
 
   /**
    * Confirm that an assisted or delegated action was completed, transitioning it

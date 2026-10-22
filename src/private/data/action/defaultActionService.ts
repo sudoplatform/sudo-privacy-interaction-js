@@ -57,6 +57,14 @@ export class DefaultActionService implements ActionService {
     return this.actionTransformer.fromGraphQLToEntity(result)
   }
 
+  async get(id: string): Promise<ActionEntity | undefined> {
+    const result = await this.appSync.getAction(id)
+    if (!result) {
+      return undefined
+    }
+    return this.actionTransformer.fromGraphQLToEntity(result)
+  }
+
   async confirmOutcome(id: string): Promise<ActionEntity> {
     const result = await this.appSync.confirmActionOutcome(id)
     return this.actionTransformer.fromGraphQLToEntity(result)

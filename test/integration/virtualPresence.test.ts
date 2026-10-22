@@ -73,6 +73,15 @@ describe('Virtual Presence Integration Test Suite', () => {
       expect(connectedVp.updatedAt).toBeInstanceOf(Date)
       expect(connectedVp.lastScannedAt).toBeInstanceOf(Date)
 
+      // A freshly connected virtual presence carries a data holder count
+      // broken down by protection state.
+      expect(connectedVp.dataHolderCount).toBeDefined()
+      expect(typeof connectedVp.dataHolderCount.count).toBe('number')
+      expect(typeof connectedVp.dataHolderCount.monitored).toBe('number')
+      expect(typeof connectedVp.dataHolderCount.initiatedActions).toBe('number')
+      expect(typeof connectedVp.dataHolderCount.completedActions).toBe('number')
+      expect(typeof connectedVp.dataHolderCount.archived).toBe('number')
+
       // List the single connected virtual presence
       await waitForExpect(
         async () => {
@@ -152,6 +161,53 @@ describe('Virtual Presence Integration Test Suite', () => {
       expect(connectedVp2).toBeDefined()
       result = await instanceUnderTest.listVirtualPresences({})
       expect(result.items).toHaveLength(2)
+    })
+  })
+
+  describe('dataHolderCount', () => {
+    it('reports a data holder count whose active total matches its breakdown', async () => {
+      const connectedVp =
+        await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
+          refreshToken: 'test-refresh-token',
+          providerIdentity: 'datacount-test@example.com',
+          relationshipProvider,
+        })
+      connectedIds.add(connectedVp.id)
+
+      // Re-list to pick up any count changes produced by discovery.
+      let vp = connectedVp
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listVirtualPresences({})
+          const found = result.items.find((item) => item.id === connectedVp.id)
+          expect(found).toBeDefined()
+          vp = found!
+          expect(vp.state).toBe(VirtualPresenceState.Connected)
+        },
+        60000,
+        3000,
+      )
+
+      const counts = vp.dataHolderCount
+      expect(counts).toBeDefined()
+
+      // Each breakdown component is a non-negative integer.
+      for (const value of [
+        counts.count,
+        counts.monitored,
+        counts.initiatedActions,
+        counts.completedActions,
+        counts.archived,
+      ]) {
+        expect(Number.isInteger(value)).toBe(true)
+        expect(value).toBeGreaterThanOrEqual(0)
+      }
+
+      // The active (non-archived) count is the sum of the active protection
+      // states and excludes archived data holders.
+      expect(counts.count).toBe(
+        counts.monitored + counts.initiatedActions + counts.completedActions,
+      )
     })
   })
 
