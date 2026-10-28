@@ -64,6 +64,7 @@ fragment AnalysisResultFields on AnalysisResult {
   virtualPresenceId
   dataHolderIdentifier
   status
+  statusReason
   lastAnalyzedAtEpochMs
   data {
     ...AnalysisResultDataFields

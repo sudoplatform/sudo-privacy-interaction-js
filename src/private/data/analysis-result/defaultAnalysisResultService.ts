@@ -20,12 +20,14 @@ import {
 import { ApiClient } from '../common/apiClient'
 import { SubscriptionResult } from '../common/baseSubscriptionManager'
 import { AnalysisResultSubscriptionManager } from './analysisResultSubscriptionManager'
+import { AnalysisResultStatusReasonTransformer } from './transformer/analysisResultStatusReasonTransformer'
 import { AnalysisResultStatusTransformer } from './transformer/analysisResultStatusTransformer'
 import { AnalysisResultTransformer } from './transformer/analysisResultTransformer'
 
 export class DefaultAnalysisResultService implements AnalysisResultService {
   private readonly analysisResultTransformer: AnalysisResultTransformer
   private readonly analysisResultStatusTransformer: AnalysisResultStatusTransformer
+  private readonly analysisResultStatusReasonTransformer: AnalysisResultStatusReasonTransformer
   private readonly subscriptionManager: AnalysisResultSubscriptionManager<
     OnAnalysisResultUpdateSubscription,
     AnalysisResultSubscriber
@@ -34,6 +36,8 @@ export class DefaultAnalysisResultService implements AnalysisResultService {
   constructor(private readonly appSync: ApiClient) {
     this.analysisResultTransformer = new AnalysisResultTransformer()
     this.analysisResultStatusTransformer = new AnalysisResultStatusTransformer()
+    this.analysisResultStatusReasonTransformer =
+      new AnalysisResultStatusReasonTransformer()
     this.subscriptionManager = new AnalysisResultSubscriptionManager<
       OnAnalysisResultUpdateSubscription,
       AnalysisResultSubscriber
@@ -107,6 +111,12 @@ export class DefaultAnalysisResultService implements AnalysisResultService {
             this.analysisResultStatusTransformer.fromGraphQLToEntity(
               item.status,
             )
+          const statusReason =
+            this.analysisResultStatusReasonTransformer.fromEntityToAPI(
+              this.analysisResultStatusReasonTransformer.fromGraphQLToEntity(
+                item.statusReason,
+              ),
+            )
           const update: AnalysisResultUpdate = {
             id: item.id,
             virtualPresenceId: item.virtualPresenceId,
@@ -115,6 +125,7 @@ export class DefaultAnalysisResultService implements AnalysisResultService {
               this.analysisResultStatusTransformer.fromEntityToAPI(
                 statusEntity,
               ),
+            ...(statusReason !== undefined && { statusReason }),
             lastAnalyzedAt: new Date(item.lastAnalyzedAtEpochMs),
             owner: item.owner,
             version: item.version,

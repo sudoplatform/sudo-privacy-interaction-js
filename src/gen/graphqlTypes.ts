@@ -42,6 +42,14 @@ export type AnalysisResultStatus =
   | 'UNAVAILABLE'
   | '%future added value'
 
+export type AnalysisResultStatusReason =
+  | 'INVALID_DOMAIN'
+  | 'MALICIOUS'
+  | 'NOT_ATTEMPTED'
+  | 'OTHER'
+  | 'POLICY_UNAVAILABLE'
+  | '%future added value'
+
 export type AuthCodeInput = {
   authCode: string
   redirectUri?: string | null | undefined
@@ -279,6 +287,7 @@ export type AnalysisResultFieldsFragment = {
   virtualPresenceId: string
   dataHolderIdentifier: string
   status: AnalysisResultStatus
+  statusReason: AnalysisResultStatusReason | null
   lastAnalyzedAtEpochMs: number
   owner: string
   version: number
@@ -374,6 +383,7 @@ export type OrganizationAnalysisFieldsFragment = {
   id: string
   domain: string
   status: AnalysisResultStatus
+  statusReason: AnalysisResultStatusReason | null
   lastAnalyzedAtEpochMs: number
   owner: string
   version: number
@@ -736,6 +746,7 @@ export type GetAnalysisResultQuery = {
     virtualPresenceId: string
     dataHolderIdentifier: string
     status: AnalysisResultStatus
+    statusReason: AnalysisResultStatusReason | null
     lastAnalyzedAtEpochMs: number
     owner: string
     version: number
@@ -809,6 +820,7 @@ export type GetOrganizationAnalysisQuery = {
     id: string
     domain: string
     status: AnalysisResultStatus
+    statusReason: AnalysisResultStatusReason | null
     lastAnalyzedAtEpochMs: number
     owner: string
     version: number
@@ -885,6 +897,7 @@ export type ListAnalysisResultsQuery = {
       virtualPresenceId: string
       dataHolderIdentifier: string
       status: AnalysisResultStatus
+      statusReason: AnalysisResultStatusReason | null
       lastAnalyzedAtEpochMs: number
       owner: string
       version: number
@@ -1087,6 +1100,7 @@ export type OnAnalysisResultUpdateSubscription = {
     virtualPresenceId: string
     dataHolderIdentifier: string
     status: AnalysisResultStatus
+    statusReason: AnalysisResultStatusReason | null
     lastAnalyzedAtEpochMs: number
     owner: string
     version: number
@@ -1473,6 +1487,7 @@ export const AnalysisResultFieldsFragmentDoc = {
             name: { kind: 'Name', value: 'dataHolderIdentifier' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'statusReason' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
@@ -1808,6 +1823,7 @@ export const OrganizationAnalysisFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
           { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
           { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'statusReason' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
@@ -3486,6 +3502,7 @@ export const GetAnalysisResultDocument = {
             name: { kind: 'Name', value: 'dataHolderIdentifier' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'statusReason' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
@@ -3827,6 +3844,7 @@ export const GetOrganizationAnalysisDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'id' } },
           { kind: 'Field', name: { kind: 'Name', value: 'domain' } },
           { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'statusReason' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
@@ -4179,6 +4197,7 @@ export const ListAnalysisResultsDocument = {
             name: { kind: 'Name', value: 'dataHolderIdentifier' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'statusReason' } },
           {
             kind: 'Field',
             name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },
@@ -4816,6 +4835,10 @@ export const OnAnalysisResultUpdateDocument = {
                   name: { kind: 'Name', value: 'dataHolderIdentifier' },
                 },
                 { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'statusReason' },
+                },
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'lastAnalyzedAtEpochMs' },

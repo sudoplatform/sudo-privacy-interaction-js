@@ -136,6 +136,7 @@ export class GraphQLDataFactory {
     virtualPresenceId: 'testVirtualPresenceId',
     dataHolderIdentifier: 'example.com',
     status: 'COMPLETE',
+    statusReason: null,
     lastAnalyzedAtEpochMs: 4.0,
     data: {
       privacyScore: GraphQLDataFactory.privacyScore,
@@ -153,9 +154,18 @@ export class GraphQLDataFactory {
     virtualPresenceId: 'testVirtualPresenceId',
     dataHolderIdentifier: 'example.com',
     status: 'PENDING',
+    statusReason: null,
     lastAnalyzedAtEpochMs: 4.0,
     data: undefined,
   }
+
+  static readonly analysisResultWithStatusReason: AnalysisResultFieldsFragment =
+    {
+      ...GraphQLDataFactory.analysisResult,
+      status: 'FAILED',
+      statusReason: 'MALICIOUS',
+      data: undefined,
+    }
 
   static readonly dataHolderScanSummary: DataHolderScanSummaryFieldsFragment = {
     dataHolderId: 'testId',
@@ -177,6 +187,7 @@ export class GraphQLDataFactory {
     id: 'example.com',
     domain: 'example.com',
     status: 'COMPLETE',
+    statusReason: null,
     lastAnalyzedAtEpochMs: 4.0,
     data: GraphQLDataFactory.analysisResult.data,
     owner: 'testOwner',

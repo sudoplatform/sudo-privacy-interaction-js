@@ -2,6 +2,7 @@ fragment OrganizationAnalysisFields on OrganizationAnalysis {
   id
   domain
   status
+  statusReason
   lastAnalyzedAtEpochMs
   data {
     ...AnalysisResultDataFields

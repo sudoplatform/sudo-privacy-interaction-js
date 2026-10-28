@@ -7,6 +7,7 @@
 import {
   AnalysisResultDataEntity,
   AnalysisResultStatusEntity,
+  AnalysisResultStatusReasonEntity,
 } from '../analysis-result/analysisResultEntity'
 
 /**
@@ -22,6 +23,7 @@ import {
  * @property {string} domain The analyzed domain (equal to id).
  * @property {AnalysisResultStatusEntity} status Aggregate status. PENDING while an asynchronous
  *  source is still resolving; re-query for the terminal result.
+ * @property {AnalysisResultStatusReasonEntity} statusReason Reason explaining the aggregate status, when one applies.
  * @property {Date} lastAnalyzedAt When the aggregate was last derived.
  * @property {AnalysisResultDataEntity} data Structured analysis payload. Populated when status
  *  is COMPLETE or PARTIAL.
@@ -34,6 +36,7 @@ export interface OrganizationAnalysisEntity {
   id: string
   domain: string
   status: AnalysisResultStatusEntity
+  statusReason?: AnalysisResultStatusReasonEntity
   lastAnalyzedAt: Date
   data?: AnalysisResultDataEntity
   owner: string

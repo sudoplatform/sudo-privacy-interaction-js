@@ -9,6 +9,7 @@ import { SudoUserClient } from '@sudoplatform/sudo-user'
 import waitForExpect from 'wait-for-expect'
 import {
   AnalysisResultStatus,
+  AnalysisResultStatusReason,
   OrganizationAnalysis,
   OrganizationAnalysisDomainResolution,
   OrganizationAnalysisMode,
@@ -48,6 +49,13 @@ describe('Organization Analysis Integration Test Suite', () => {
     expect(analysis.id).toBe(domain)
     expect(analysis.domain).toBe(domain)
     expect(Object.values(AnalysisResultStatus)).toContain(analysis.status)
+    // statusReason is optional: absent when no reason applies, otherwise a
+    // valid enum value.
+    if (analysis.statusReason !== undefined) {
+      expect(Object.values(AnalysisResultStatusReason)).toContain(
+        analysis.statusReason,
+      )
+    }
     expect(analysis.lastAnalyzedAt).toBeInstanceOf(Date)
     expect(analysis.owner).toBeDefined()
     expect(typeof analysis.version).toBe('number')
@@ -161,6 +169,41 @@ describe('Organization Analysis Integration Test Suite', () => {
       expect(analysis).toBeDefined()
       expect(analysis?.id).toBe(analysis?.domain)
       expectValidAnalysis(analysis!, analysis!.domain)
+    })
+
+    it('surfaces a status reason for an invalid domain', async () => {
+      // An invalid domain is expected to yield the INVALID_DOMAIN status
+      // reason, exercising the statusReason propagation path end-to-end.
+      // ANALYZE is read-through: the first call may return PENDING (or no
+      // result) while the source resolves, so poll until the analysis reaches
+      // a terminal state before asserting the reason.
+      const invalidDomain = 'not-a-real-domain.invalid'
+
+      const initial = await instanceUnderTest.getOrganizationAnalysis({
+        domain: invalidDomain,
+        mode: OrganizationAnalysisMode.Analyze,
+        resolution: OrganizationAnalysisDomainResolution.Exact,
+      })
+      expect(initial).toBeDefined()
+
+      let terminal: OrganizationAnalysis | undefined
+      await waitForExpect(
+        async () => {
+          terminal = await instanceUnderTest.getOrganizationAnalysis({
+            domain: invalidDomain,
+            mode: OrganizationAnalysisMode.Analyze,
+            resolution: OrganizationAnalysisDomainResolution.Exact,
+          })
+          expect(terminal).toBeDefined()
+          expect(terminal?.status).not.toBe(AnalysisResultStatus.Pending)
+        },
+        120000,
+        5000,
+      )
+
+      expect(terminal!.statusReason).toBe(
+        AnalysisResultStatusReason.InvalidDomain,
+      )
     })
   })
 })

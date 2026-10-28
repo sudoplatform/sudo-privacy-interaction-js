@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { AnalysisResultData, AnalysisResultStatus } from './analysisResult'
+import {
+  AnalysisResultData,
+  AnalysisResultStatus,
+  AnalysisResultStatusReason,
+} from './analysisResult'
 
 /**
  * The Sudo Platform SDK representation of a shared, domain-keyed privacy analysis
@@ -19,6 +23,7 @@ import { AnalysisResultData, AnalysisResultStatus } from './analysisResult'
  * @property {string} domain The analyzed domain (equal to id).
  * @property {AnalysisResultStatus} status Aggregate status. Pending while an asynchronous
  *  source is still resolving; re-query for the terminal result.
+ * @property {AnalysisResultStatusReason} statusReason Reason explaining the aggregate status, when one applies.
  * @property {Date} lastAnalyzedAt When the aggregate was last derived.
  * @property {AnalysisResultData} data Structured analysis payload. Populated when status is
  *  Complete or Partial.
@@ -31,6 +36,7 @@ export interface OrganizationAnalysis {
   id: string
   domain: string
   status: AnalysisResultStatus
+  statusReason?: AnalysisResultStatusReason
   lastAnalyzedAt: Date
   data?: AnalysisResultData
   owner: string

@@ -13,6 +13,7 @@ import {
   AnalysisResult,
   AnalysisResultData,
   AnalysisResultStatus,
+  AnalysisResultStatusReason,
   AvailableAction,
   CapabilitySignals,
   CategorySignals,
@@ -161,6 +162,16 @@ export class APIDataFactory {
     status: AnalysisResultStatus.Complete,
     lastAnalyzedAt: new Date(4.0),
     data: APIDataFactory.analysisResultData,
+  }
+
+  static readonly analysisResultWithStatusReason: AnalysisResult = {
+    ...APIDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: AnalysisResultStatus.Failed,
+    statusReason: AnalysisResultStatusReason.Malicious,
+    lastAnalyzedAt: new Date(4.0),
+    data: undefined,
   }
 
   static readonly analysisResultPending: AnalysisResult = {

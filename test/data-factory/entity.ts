@@ -21,6 +21,7 @@ import {
   AnalysisResultDataEntity,
   AnalysisResultEntity,
   AnalysisResultStatusEntity,
+  AnalysisResultStatusReasonEntity,
   CapabilitySignalsEntity,
   CategorySignalsEntity,
   DataCategoryEntity,
@@ -179,6 +180,16 @@ export class EntityDataFactory {
     status: AnalysisResultStatusEntity.Complete,
     lastAnalyzedAt: new Date(4.0),
     data: EntityDataFactory.analysisResultData,
+  }
+
+  static readonly analysisResultWithStatusReason: AnalysisResultEntity = {
+    ...EntityDataFactory.commonProps,
+    virtualPresenceId: 'testVirtualPresenceId',
+    dataHolderIdentifier: 'example.com',
+    status: AnalysisResultStatusEntity.Failed,
+    statusReason: AnalysisResultStatusReasonEntity.Malicious,
+    lastAnalyzedAt: new Date(4.0),
+    data: undefined,
   }
 
   static readonly analysisResultPending: AnalysisResultEntity = {

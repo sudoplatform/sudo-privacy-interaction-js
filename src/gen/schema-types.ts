@@ -73,6 +73,7 @@ export type AnalysisResult = {
   lastAnalyzedAtEpochMs: Scalars['Float']['output']
   owner: Scalars['ID']['output']
   status: AnalysisResultStatus
+  statusReason?: Maybe<AnalysisResultStatusReason>
   updatedAtEpochMs: Scalars['Float']['output']
   version: Scalars['Int']['output']
   virtualPresenceId: Scalars['ID']['output']
@@ -101,6 +102,14 @@ export type AnalysisResultStatus =
   | 'UNAVAILABLE'
   | '%future added value'
 
+export type AnalysisResultStatusReason =
+  | 'INVALID_DOMAIN'
+  | 'MALICIOUS'
+  | 'NOT_ATTEMPTED'
+  | 'OTHER'
+  | 'POLICY_UNAVAILABLE'
+  | '%future added value'
+
 export type AnalysisResultUpdate = {
   createdAtEpochMs: Scalars['Float']['output']
   dataHolderIdentifier: Scalars['String']['output']
@@ -108,6 +117,7 @@ export type AnalysisResultUpdate = {
   lastAnalyzedAtEpochMs: Scalars['Float']['output']
   owner: Scalars['ID']['output']
   status: AnalysisResultStatus
+  statusReason?: Maybe<AnalysisResultStatusReason>
   updatedAtEpochMs: Scalars['Float']['output']
   version: Scalars['Int']['output']
   virtualPresenceId: Scalars['ID']['output']
@@ -357,6 +367,7 @@ export type OrganizationAnalysis = {
   lastAnalyzedAtEpochMs: Scalars['Float']['output']
   owner: Scalars['ID']['output']
   status: AnalysisResultStatus
+  statusReason?: Maybe<AnalysisResultStatusReason>
   updatedAtEpochMs: Scalars['Float']['output']
   version: Scalars['Int']['output']
 }

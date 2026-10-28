@@ -8,19 +8,26 @@ import { OrganizationAnalysis as OrganizationAnalysisGraphQL } from '../../../..
 import { OrganizationAnalysis } from '../../../../public/typings/organizationAnalysis'
 import { OrganizationAnalysisEntity } from '../../../domain/entities/organization-analysis/organizationAnalysisEntity'
 import { AnalysisResultDataTransformer } from '../../analysis-result/transformer/analysisResultDataTransformer'
+import { AnalysisResultStatusReasonTransformer } from '../../analysis-result/transformer/analysisResultStatusReasonTransformer'
 import { AnalysisResultStatusTransformer } from '../../analysis-result/transformer/analysisResultStatusTransformer'
 
 export class OrganizationAnalysisTransformer {
   private readonly statusTransformer = new AnalysisResultStatusTransformer()
+  private readonly statusReasonTransformer =
+    new AnalysisResultStatusReasonTransformer()
   private readonly dataTransformer = new AnalysisResultDataTransformer()
 
   fromGraphQLToEntity(
     data: OrganizationAnalysisGraphQL,
   ): OrganizationAnalysisEntity {
+    const statusReason = this.statusReasonTransformer.fromGraphQLToEntity(
+      data.statusReason,
+    )
     return {
       id: data.id,
       domain: data.domain,
       status: this.statusTransformer.fromGraphQLToEntity(data.status),
+      ...(statusReason !== undefined && { statusReason }),
       lastAnalyzedAt: new Date(data.lastAnalyzedAtEpochMs),
       data: data.data
         ? this.dataTransformer.fromGraphQLToEntity(data.data)
@@ -33,10 +40,14 @@ export class OrganizationAnalysisTransformer {
   }
 
   fromEntityToAPI(entity: OrganizationAnalysisEntity): OrganizationAnalysis {
+    const statusReason = this.statusReasonTransformer.fromEntityToAPI(
+      entity.statusReason,
+    )
     return {
       id: entity.id,
       domain: entity.domain,
       status: this.statusTransformer.fromEntityToAPI(entity.status),
+      ...(statusReason !== undefined && { statusReason }),
       lastAnalyzedAt: entity.lastAnalyzedAt,
       data: entity.data
         ? this.dataTransformer.fromEntityToAPI(entity.data)

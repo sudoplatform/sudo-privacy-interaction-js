@@ -10,6 +10,7 @@ import { v4 } from 'uuid'
 import waitForExpect from 'wait-for-expect'
 import {
   AnalysisResultStatus,
+  AnalysisResultStatusReason,
   AnalysisResultUpdate,
   ConnectionState,
   RelationshipProvider,
@@ -135,6 +136,13 @@ describe('Analysis Result Integration Test Suite', () => {
         expect(item.virtualPresenceId).toBe(connectedVp.id)
         expect(item.dataHolderIdentifier).toBeDefined()
         expect(item.status).toBeDefined()
+        // statusReason is optional: absent when no reason applies, otherwise a
+        // valid enum value.
+        if (item.statusReason !== undefined) {
+          expect(Object.values(AnalysisResultStatusReason)).toContain(
+            item.statusReason,
+          )
+        }
         expect(item.lastAnalyzedAt).toBeInstanceOf(Date)
         expect(item.owner).toBeDefined()
         expect(typeof item.version).toBe('number')
@@ -358,6 +366,14 @@ describe('Analysis Result Integration Test Suite', () => {
       expect(firstUpdate.dataHolderIdentifier).toBeDefined()
       expect(firstUpdate.status).toBeDefined()
       expect(Object.values(AnalysisResultStatus)).toContain(firstUpdate.status)
+      // statusReason is optional on the subscription payload: absent when no
+      // reason applies, otherwise a valid enum value. This verifies the field
+      // is propagated end-to-end through the publish → subscription path.
+      if (firstUpdate.statusReason !== undefined) {
+        expect(Object.values(AnalysisResultStatusReason)).toContain(
+          firstUpdate.statusReason,
+        )
+      }
       expect(firstUpdate.lastAnalyzedAt).toBeInstanceOf(Date)
       expect(firstUpdate.owner).toBeDefined()
       expect(typeof firstUpdate.version).toBe('number')

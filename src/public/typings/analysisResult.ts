@@ -13,6 +13,7 @@
  * @property {string} virtualPresenceId The virtual presence this analysis is associated with.
  * @property {string} dataHolderIdentifier The data holder domain that this analysis is about.
  * @property {AnalysisResultStatus} status Current status of the analysis.
+ * @property {AnalysisResultStatusReason} statusReason Reason explaining the current status, when one applies.
  * @property {Date} lastAnalyzedAt Date for when the analysis was last performed.
  * @property {AnalysisResultData} data Structured analysis data. Populated when status is COMPLETE or PARTIAL.
  * @property {number} version Version of this entity. Increments on update.
@@ -24,6 +25,7 @@ export interface AnalysisResult {
   virtualPresenceId: string
   dataHolderIdentifier: string
   status: AnalysisResultStatus
+  statusReason?: AnalysisResultStatusReason
   lastAnalyzedAt: Date
   data?: AnalysisResultData
   owner: string
@@ -41,6 +43,7 @@ export interface AnalysisResult {
  * @property {string} virtualPresenceId The virtual presence this analysis is associated with.
  * @property {string} dataHolderIdentifier The data holder domain that this analysis is about.
  * @property {AnalysisResultStatus} status Current status of the analysis.
+ * @property {AnalysisResultStatusReason} statusReason Reason explaining the current status, when one applies.
  * @property {Date} lastAnalyzedAt Date for when the analysis was last performed.
  * @property {number} version Version of this entity. Increments on update.
  * @property {Date} createdAt Date for when the analysis result was created.
@@ -51,6 +54,7 @@ export interface AnalysisResultUpdate {
   virtualPresenceId: string
   dataHolderIdentifier: string
   status: AnalysisResultStatus
+  statusReason?: AnalysisResultStatusReason
   lastAnalyzedAt: Date
   owner: string
   version: number
@@ -75,6 +79,25 @@ export enum AnalysisResultStatus {
   Partial = 'PARTIAL',
   Failed = 'FAILED',
   Unavailable = 'UNAVAILABLE',
+}
+
+/**
+ * The reason explaining an analysis result's status.
+ *
+ * @property INVALID_DOMAIN The requested domain was not a valid analyzable domain.
+ * @property POLICY_UNAVAILABLE No privacy policy could be located for the organization.
+ * @property MALICIOUS The domain was identified as malicious.
+ * @property NOT_ATTEMPTED Analysis was not attempted for the domain.
+ * @property OTHER A reason that does not fit the other categories.
+ *
+ * @enum
+ */
+export enum AnalysisResultStatusReason {
+  InvalidDomain = 'INVALID_DOMAIN',
+  PolicyUnavailable = 'POLICY_UNAVAILABLE',
+  Malicious = 'MALICIOUS',
+  NotAttempted = 'NOT_ATTEMPTED',
+  Other = 'OTHER',
 }
 
 /**

@@ -20,6 +20,7 @@ import {
   AnalysisResultSubscriber,
   ConnectionState,
 } from '../../../../../src/public'
+import { APIDataFactory } from '../../../../data-factory/api'
 import { EntityDataFactory } from '../../../../data-factory/entity'
 import { GraphQLDataFactory } from '../../../../data-factory/graphQL'
 
@@ -186,6 +187,64 @@ describe('DefaultAnalysisResultService Test Suite', () => {
           subscriber: mockSubscriber,
         }),
       ).rejects.toThrow('subscription failed')
+    })
+
+    it('propagates statusReason to subscribers on update', async () => {
+      const mockObservable = new Observable((observer) => {
+        observer.next({
+          data: {
+            onAnalysisResultUpdate: {
+              ...GraphQLDataFactory.analysisResultWithStatusReason,
+            },
+          },
+        })
+      })
+      when(mockAppSync.onAnalysisResultUpdated(anything())).thenResolve(
+        mockObservable as any,
+      )
+
+      await instanceUnderTest.subscribe({
+        subscriptionId: 'sub-1',
+        owner: 'testOwner',
+        subscriber: mockSubscriber,
+      })
+
+      expect(mockSubscriber.analysisResultUpdated).toHaveBeenCalledTimes(1)
+      const update = (mockSubscriber.analysisResultUpdated as any).mock
+        .calls[0][0]
+      expect(update.statusReason).toBe(
+        APIDataFactory.analysisResultWithStatusReason.statusReason,
+      )
+      expect(update.id).toBe(
+        GraphQLDataFactory.analysisResultWithStatusReason.id,
+      )
+    })
+
+    it('omits statusReason for subscribers when absent on update', async () => {
+      const mockObservable = new Observable((observer) => {
+        observer.next({
+          data: {
+            onAnalysisResultUpdate: {
+              ...GraphQLDataFactory.analysisResult,
+            },
+          },
+        })
+      })
+      when(mockAppSync.onAnalysisResultUpdated(anything())).thenResolve(
+        mockObservable as any,
+      )
+
+      await instanceUnderTest.subscribe({
+        subscriptionId: 'sub-1',
+        owner: 'testOwner',
+        subscriber: mockSubscriber,
+      })
+
+      expect(mockSubscriber.analysisResultUpdated).toHaveBeenCalledTimes(1)
+      const update = (mockSubscriber.analysisResultUpdated as any).mock
+        .calls[0][0]
+      expect(update.statusReason).toBeUndefined()
+      expect('statusReason' in update).toBe(false)
     })
   })
 

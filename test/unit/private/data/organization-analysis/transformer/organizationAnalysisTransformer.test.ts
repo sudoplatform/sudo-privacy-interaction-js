@@ -28,6 +28,22 @@ describe('OrganizationAnalysisTransformer Test Suite', () => {
       })
       expect(result.data).toBeUndefined()
     })
+
+    it('maps statusReason to the entity when present', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity({
+        ...GraphQLDataFactory.organizationAnalysis,
+        statusReason: 'MALICIOUS',
+      })
+      expect(result.statusReason).toBe('MALICIOUS')
+    })
+
+    it('omits statusReason when the GraphQL value is null', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity(
+        GraphQLDataFactory.organizationAnalysis,
+      )
+      expect(result.statusReason).toBeUndefined()
+      expect('statusReason' in result).toBe(false)
+    })
   })
 
   describe('fromEntityToAPI', () => {
@@ -37,6 +53,17 @@ describe('OrganizationAnalysisTransformer Test Suite', () => {
           EntityDataFactory.organizationAnalysis,
         ),
       ).toStrictEqual(APIDataFactory.organizationAnalysis)
+    })
+
+    it('maps statusReason to the API type when present', () => {
+      const result = instanceUnderTest.fromEntityToAPI({
+        ...EntityDataFactory.organizationAnalysis,
+        statusReason:
+          EntityDataFactory.analysisResultWithStatusReason.statusReason,
+      })
+      expect(result.statusReason).toBe(
+        APIDataFactory.analysisResultWithStatusReason.statusReason,
+      )
     })
   })
 })

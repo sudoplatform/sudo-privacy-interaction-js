@@ -28,6 +28,22 @@ describe('AnalysisResultTransformer Test Suite', () => {
         ),
       ).toStrictEqual(EntityDataFactory.analysisResultPending)
     })
+
+    it('maps statusReason to the entity when present', () => {
+      expect(
+        instanceUnderTest.fromGraphQLToEntity(
+          GraphQLDataFactory.analysisResultWithStatusReason,
+        ),
+      ).toStrictEqual(EntityDataFactory.analysisResultWithStatusReason)
+    })
+
+    it('omits statusReason when the GraphQL value is null', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity(
+        GraphQLDataFactory.analysisResult,
+      )
+      expect(result.statusReason).toBeUndefined()
+      expect('statusReason' in result).toBe(false)
+    })
   })
 
   describe('fromEntityToAPI', () => {
@@ -45,5 +61,13 @@ describe('AnalysisResultTransformer Test Suite', () => {
           ),
         ).toStrictEqual(APIDataFactory.analysisResultPending)
       })
+
+    it('maps statusReason to the API type when present', () => {
+      expect(
+        instanceUnderTest.fromEntityToAPI(
+          EntityDataFactory.analysisResultWithStatusReason,
+        ),
+      ).toStrictEqual(APIDataFactory.analysisResultWithStatusReason)
+    })
   })
 })
