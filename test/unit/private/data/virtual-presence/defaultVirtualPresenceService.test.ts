@@ -231,6 +231,32 @@ describe('DefaultVirtualPresenceService Test Suite', () => {
     })
   })
 
+  describe('refreshState', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.refreshVirtualPresenceState(anything())).thenResolve(
+        GraphQLDataFactory.virtualPresence,
+      )
+
+      const result = await instanceUnderTest.refreshState('testId')
+
+      expect(result).toStrictEqual(EntityDataFactory.virtualPresence)
+      const [idArg] = capture(mockAppSync.refreshVirtualPresenceState).first()
+      expect(idArg).toBe('testId')
+      verify(mockAppSync.refreshVirtualPresenceState(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.refreshVirtualPresenceState(anything())).thenReject(
+        new Error('refresh failed'),
+      )
+
+      await expect(instanceUnderTest.refreshState('testId')).rejects.toThrow(
+        'refresh failed',
+      )
+      verify(mockAppSync.refreshVirtualPresenceState(anything())).once()
+    })
+  })
+
   describe('rescan', () => {
     it('calls appSync rescanVirtualPresence and returns transformed entity', async () => {
       when(

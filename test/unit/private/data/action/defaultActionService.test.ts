@@ -153,6 +153,25 @@ describe('DefaultActionService Test Suite', () => {
       verify(mockAppSync.listAvailableActions(anything())).once()
     })
 
+    it('forwards includeCompleted to appSync', async () => {
+      when(mockAppSync.listAvailableActions(anything())).thenResolve({
+        items: [GraphQLDataFactory.availableAction],
+        nextToken: undefined,
+      })
+
+      await instanceUnderTest.listAvailable({
+        dataHolderId: 'testDataHolderId',
+        includeCompleted: true,
+      })
+
+      const [inputArg] = capture(mockAppSync.listAvailableActions).first()
+      expect(inputArg).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        includeCompleted: true,
+      })
+      verify(mockAppSync.listAvailableActions(anything())).once()
+    })
+
     it('returns empty list when appSync returns no items', async () => {
       when(mockAppSync.listAvailableActions(anything())).thenResolve({
         items: [],
@@ -179,6 +198,78 @@ describe('DefaultActionService Test Suite', () => {
         instanceUnderTest.listAvailable({ dataHolderId: 'testDataHolderId' }),
       ).rejects.toThrow('GraphQL error')
       verify(mockAppSync.listAvailableActions(anything())).once()
+    })
+  })
+
+  describe('listForDataHolder', () => {
+    it('calls appSync and returns result correctly', async () => {
+      when(mockAppSync.listActionsForDataHolder(anything())).thenResolve({
+        items: [GraphQLDataFactory.action],
+        nextToken: 'nextToken',
+      })
+
+      const result = await instanceUnderTest.listForDataHolder({
+        dataHolderId: 'testDataHolderId',
+      })
+
+      expect(result).toStrictEqual({
+        actions: [EntityDataFactory.action],
+        nextToken: 'nextToken',
+      })
+      const [inputArg] = capture(mockAppSync.listActionsForDataHolder).first()
+      expect(inputArg).toStrictEqual({ dataHolderId: 'testDataHolderId' })
+      verify(mockAppSync.listActionsForDataHolder(anything())).once()
+    })
+
+    it('forwards limit and nextToken to appSync', async () => {
+      when(mockAppSync.listActionsForDataHolder(anything())).thenResolve({
+        items: [GraphQLDataFactory.action],
+        nextToken: undefined,
+      })
+
+      await instanceUnderTest.listForDataHolder({
+        dataHolderId: 'testDataHolderId',
+        limit: 10,
+        nextToken: 'token',
+      })
+
+      const [inputArg] = capture(mockAppSync.listActionsForDataHolder).first()
+      expect(inputArg).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        limit: 10,
+        nextToken: 'token',
+      })
+      verify(mockAppSync.listActionsForDataHolder(anything())).once()
+    })
+
+    it('returns empty list when appSync returns no items', async () => {
+      when(mockAppSync.listActionsForDataHolder(anything())).thenResolve({
+        items: [],
+        nextToken: undefined,
+      })
+
+      const result = await instanceUnderTest.listForDataHolder({
+        dataHolderId: 'testDataHolderId',
+      })
+
+      expect(result).toStrictEqual({
+        actions: [],
+        nextToken: undefined,
+      })
+      verify(mockAppSync.listActionsForDataHolder(anything())).once()
+    })
+
+    it('throws error when appSync throws', async () => {
+      when(mockAppSync.listActionsForDataHolder(anything())).thenReject(
+        new Error('GraphQL error'),
+      )
+
+      await expect(
+        instanceUnderTest.listForDataHolder({
+          dataHolderId: 'testDataHolderId',
+        }),
+      ).rejects.toThrow('GraphQL error')
+      verify(mockAppSync.listActionsForDataHolder(anything())).once()
     })
   })
 

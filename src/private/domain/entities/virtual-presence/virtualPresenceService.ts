@@ -144,9 +144,20 @@ export interface VirtualPresenceService {
   rescan(input: RescanVirtualPresenceInput): Promise<VirtualPresenceEntity>
 
   /**
+   * Validate a virtual presence's provider grant on demand and return its
+   * reconciled state. If the provider confirms the grant has been revoked, the
+   * presence transitions to `NeedsReauth`; otherwise its state is returned
+   * unchanged.
+   *
+   * @param {string} id The unique identifier of the virtual presence to refresh.
+   * @returns {VirtualPresenceEntity} The virtual presence with its reconciled state.
+   */
+  refreshState(id: string): Promise<VirtualPresenceEntity>
+
+  /**
    * Subscribe to virtual presence state events.
    *
-   * @param {SubscribeToVirtualPresenceUpdatesInput} input Parameters used to subscribe to virtual
+   * @param {SubscribeToVirtualPresenceInput} input Parameters used to subscribe to virtual
    *  presence state events.
    */
   subscribe(input: SubscribeToVirtualPresenceInput): Promise<void>

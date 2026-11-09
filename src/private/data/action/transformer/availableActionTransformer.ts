@@ -10,12 +10,14 @@ import { AvailableActionEntity } from '../../../domain/entities/action/actionEnt
 import { ActionFulfilmentMethodTransformer } from './actionFulfilmentMethodTransformer'
 import { ActionIntentTransformer } from './actionIntentTransformer'
 import { ActionOriginTransformer } from './actionOriginTransformer'
+import { ActionStatusTransformer } from './actionStatusTransformer'
 
 export class AvailableActionTransformer {
   private readonly intentTransformer = new ActionIntentTransformer()
   private readonly fulfilmentMethodTransformer =
     new ActionFulfilmentMethodTransformer()
   private readonly originTransformer = new ActionOriginTransformer()
+  private readonly statusTransformer = new ActionStatusTransformer()
 
   fromGraphQLToEntity(data: AvailableActionGraphQL): AvailableActionEntity {
     return {
@@ -27,6 +29,10 @@ export class AvailableActionTransformer {
       origin: this.originTransformer.fromGraphQLToEntity(data.origin),
       title: data.title ?? undefined,
       description: data.description ?? undefined,
+      status:
+        data.status != null
+          ? this.statusTransformer.fromGraphQLToEntity(data.status)
+          : undefined,
     }
   }
 
@@ -40,6 +46,10 @@ export class AvailableActionTransformer {
       origin: this.originTransformer.fromEntityToAPI(entity.origin),
       title: entity.title,
       description: entity.description,
+      status:
+        entity.status !== undefined
+          ? this.statusTransformer.fromEntityToAPI(entity.status)
+          : undefined,
     }
   }
 }

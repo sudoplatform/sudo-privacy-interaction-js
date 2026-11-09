@@ -37,8 +37,13 @@ import { EntitlementsBuilder } from './entitlements'
 const configFile = 'config/sudoplatformconfig.json'
 const registerKeyFile = 'config/register_key.private'
 const registerKeyIdFile = 'config/register_key.id'
-const registerKey = fs.readFileSync(registerKeyFile).toString()
-const registerKeyId = fs.readFileSync(registerKeyIdFile).toString().trim()
+
+const registerKey =
+  process.env.REGISTER_KEY?.trim() ||
+  fs.readFileSync(registerKeyFile).toString()
+const registerKeyId =
+  process.env.REGISTER_KEY_ID?.trim() ||
+  fs.readFileSync(registerKeyIdFile).toString().trim()
 
 const adminApiKeyFile = 'config/admin_api_key.secret'
 let adminApiKey: string | undefined
@@ -72,6 +77,7 @@ export interface SetupPrivacyInteractionClientOutput {
   entitlementsClient: SudoEntitlementsClient
   entitlementsAdminClient: SudoEntitlementsAdminClient
   apiClient: ApiClient
+  privacyInteractionAdminEndpoint: string
   owner: string
 }
 
@@ -80,6 +86,18 @@ export const setupPrivacyInteractionClient = async (
 ): Promise<SetupPrivacyInteractionClientOutput> => {
   try {
     setupSudoPlatformConfig(log)
+
+    const adminConsoleConfig =
+      DefaultConfigurationManager.getInstance().getConfigSet(
+        'adminConsoleProjectService',
+      ) as { apiUrl?: string } | undefined
+    const privacyInteractionAdminEndpoint =
+      process.env.PIMS_ADMIN_API_URL?.trim() || adminConsoleConfig?.apiUrl
+    if (!privacyInteractionAdminEndpoint) {
+      throw new Error(
+        'Unable to resolve privacy interaction admin endpoint: set the PIMS_ADMIN_API_URL environment variable or provide adminConsoleProjectService.apiUrl in sudoplatformconfig.json',
+      )
+    }
 
     const testKeyManager = new DefaultSudoKeyManager(
       new WebSudoCryptoProvider(
@@ -143,6 +161,7 @@ export const setupPrivacyInteractionClient = async (
       apiClient,
       entitlementsClient,
       entitlementsAdminClient,
+      privacyInteractionAdminEndpoint,
       owner,
     }
   } catch (err) {

@@ -16,7 +16,10 @@ import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
-import { resolveRelationshipProvider } from './util/relationshipProvider'
+import {
+  isTestProviderEnabled,
+  resolveRelationshipProvider,
+} from './util/relationshipProvider'
 import { TestAdminClient } from './util/testAdminClient'
 
 describe('Data Holder Scan Summary Integration Test Suite', () => {
@@ -27,6 +30,11 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
   let userClient: SudoUserClient
   let relationshipProvider: RelationshipProvider
   let testAdminClient: TestAdminClient
+
+  // Resolved once against a throwaway client. This suite depends on the TEST
+  // provider to seed data holders with known scan summaries, so every test is
+  // skipped when the TEST provider is not enabled for the environment.
+  let testProviderEnabled = false
 
   const connectedIds = new Set<string>()
   const seededEmailIds = new Set<string>()
@@ -84,15 +92,39 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
     return { virtualPresenceId: connectedVp.id, dataHolders: result.items }
   }
 
+  beforeAll(async () => {
+    // One-time probe to decide whether the TEST provider is enabled. Uses a
+    // dedicated client that is torn down immediately afterwards.
+    const probe = await setupPrivacyInteractionClient(log)
+    try {
+      testProviderEnabled = await isTestProviderEnabled(
+        probe.privacyInteractionClient,
+      )
+      if (!testProviderEnabled) {
+        log.info(
+          'TEST provider not enabled; Data Holder Scan Summary integration tests will be skipped.',
+        )
+      }
+    } finally {
+      await probe.userClient.reset()
+    }
+  })
+
   beforeEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
     relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
-    testAdminClient = new TestAdminClient()
+    testAdminClient = new TestAdminClient(setup.privacyInteractionAdminEndpoint)
   })
 
   afterEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     for (const id of connectedIds) {
       try {
         await instanceUnderTest.disconnectVirtualPresence(id)
@@ -118,7 +150,12 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
   })
 
   describe('listDataHolderScanSummaries', () => {
-    it('lists scan summaries for a data holder after discovery', async () => {
+    it('lists scan summaries for a data holder after discovery', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const { dataHolders } = await connectAndDiscover(
         'scansummary-test@example.com',
       )
@@ -148,7 +185,12 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
       }
     })
 
-    it('returns an empty list for a data holder with no scans', async () => {
+    it('returns an empty list for a data holder with no scans', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const result = await instanceUnderTest.listDataHolderScanSummaries({
         dataHolderId: 'non-existent-data-holder-id',
       })
@@ -158,7 +200,12 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
       expect(result.items.length).toBe(0)
     })
 
-    it('respects the limit parameter and supports pagination', async () => {
+    it('respects the limit parameter and supports pagination', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const providerIdentity = 'scansummary-pagination@example.com'
       const { virtualPresenceId, dataHolders } =
         await connectAndDiscover(providerIdentity)
@@ -218,7 +265,12 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
   })
 
   describe('getDataHolder scan summary composition', () => {
-    it('attaches latestScanSummary by default', async () => {
+    it('attaches latestScanSummary by default', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const { dataHolders } = await connectAndDiscover(
         'scansummary-get@example.com',
       )
@@ -237,7 +289,12 @@ describe('Data Holder Scan Summary Integration Test Suite', () => {
       }
     })
 
-    it('does not attach latestScanSummary when includeScanSummary is false', async () => {
+    it('does not attach latestScanSummary when includeScanSummary is false', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const { dataHolders } = await connectAndDiscover(
         'scansummary-get-opt-out@example.com',
       )

@@ -28,6 +28,7 @@ import { GetAnalysisResultUseCase } from '../../../src/private/domain/use-cases/
 import { ConfirmActionOutcomeUseCase } from '../../../src/private/domain/use-cases/action/confirmActionOutcomeUseCase'
 import { GetActionUseCase } from '../../../src/private/domain/use-cases/action/getActionUseCase'
 import { InitiateActionUseCase } from '../../../src/private/domain/use-cases/action/initiateActionUseCase'
+import { ListActionsForDataHolderUseCase } from '../../../src/private/domain/use-cases/action/listActionsForDataHolderUseCase'
 import { ListAvailableActionsUseCase } from '../../../src/private/domain/use-cases/action/listAvailableActionsUseCase'
 import { SubscribeToActionUseCase } from '../../../src/private/domain/use-cases/action/subscribeToActionUseCase'
 import { UnsubscribeFromActionUseCase } from '../../../src/private/domain/use-cases/action/unsubscribeFromActionUseCase'
@@ -51,6 +52,7 @@ import { ConnectVirtualPresenceWithAuthCodeUseCase } from '../../../src/private/
 import { ConnectVirtualPresenceWithRefreshTokenUseCase } from '../../../src/private/domain/use-cases/virtual-presence/connectVirtualPresenceWithRefreshTokenUseCase'
 import { DisconnectVirtualPresenceUseCase } from '../../../src/private/domain/use-cases/virtual-presence/disconnectVirtualPresenceUseCase'
 import { ListVirtualPresencesUseCase } from '../../../src/private/domain/use-cases/virtual-presence/listVirtualPresencesUseCase'
+import { RefreshVirtualPresenceStateUseCase } from '../../../src/private/domain/use-cases/virtual-presence/refreshVirtualPresenceStateUseCase'
 import { RescanVirtualPresenceUseCase } from '../../../src/private/domain/use-cases/virtual-presence/rescanVirtualPresenceUseCase'
 import { SubscribeToVirtualPresenceUseCase } from '../../../src/private/domain/use-cases/virtual-presence/subscribeToVirtualPresenceUseCase'
 import { UnsubscribeFromVirtualPresenceUseCase } from '../../../src/private/domain/use-cases/virtual-presence/unsubscribeFromVirtualPresenceUseCase'
@@ -131,6 +133,12 @@ vi.mock(
 )
 const ViMockRescanVirtualPresenceUseCase = vi.mocked(
   RescanVirtualPresenceUseCase,
+)
+vi.mock(
+  '../../../src/private/domain/use-cases/virtual-presence/refreshVirtualPresenceStateUseCase',
+)
+const ViMockRefreshVirtualPresenceStateUseCase = vi.mocked(
+  RefreshVirtualPresenceStateUseCase,
 )
 vi.mock(
   '../../../src/private/domain/use-cases/data-holder/getDataHolderUseCase',
@@ -220,6 +228,12 @@ const ViMockConfirmActionOutcomeUseCase = vi.mocked(ConfirmActionOutcomeUseCase)
 vi.mock('../../../src/private/domain/use-cases/action/getActionUseCase')
 const ViMockGetActionUseCase = vi.mocked(GetActionUseCase)
 vi.mock(
+  '../../../src/private/domain/use-cases/action/listActionsForDataHolderUseCase',
+)
+const ViMockListActionsForDataHolderUseCase = vi.mocked(
+  ListActionsForDataHolderUseCase,
+)
+vi.mock(
   '../../../src/private/domain/use-cases/action/listAvailableActionsUseCase',
 )
 const ViMockListAvailableActionsUseCase = vi.mocked(ListAvailableActionsUseCase)
@@ -252,6 +266,8 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     mock<DisconnectVirtualPresenceUseCase>()
   const mockListVirtualPresencesUseCase = mock<ListVirtualPresencesUseCase>()
   const mockRescanVirtualPresenceUseCase = mock<RescanVirtualPresenceUseCase>()
+  const mockRefreshVirtualPresenceStateUseCase =
+    mock<RefreshVirtualPresenceStateUseCase>()
   const mockSubscribeToVirtualPresenceUseCase =
     mock<SubscribeToVirtualPresenceUseCase>()
   const mockUnsubscribeFromVirtualPresenceUseCase =
@@ -281,6 +297,8 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
   const mockInitiateActionUseCase = mock<InitiateActionUseCase>()
   const mockConfirmActionOutcomeUseCase = mock<ConfirmActionOutcomeUseCase>()
   const mockGetActionUseCase = mock<GetActionUseCase>()
+  const mockListActionsForDataHolderUseCase =
+    mock<ListActionsForDataHolderUseCase>()
   const mockListAvailableActionsUseCase = mock<ListAvailableActionsUseCase>()
   const mockSubscribeToActionUseCase = mock<SubscribeToActionUseCase>()
   const mockUnsubscribeFromActionUseCase = mock<UnsubscribeFromActionUseCase>()
@@ -308,6 +326,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockDisconnectVirtualPresenceUseCase)
     reset(mockListVirtualPresencesUseCase)
     reset(mockRescanVirtualPresenceUseCase)
+    reset(mockRefreshVirtualPresenceStateUseCase)
     reset(mockSubscribeToVirtualPresenceUseCase)
     reset(mockUnsubscribeFromVirtualPresenceUseCase)
     reset(mockGetDataHolderUseCase)
@@ -328,6 +347,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     reset(mockInitiateActionUseCase)
     reset(mockConfirmActionOutcomeUseCase)
     reset(mockGetActionUseCase)
+    reset(mockListActionsForDataHolderUseCase)
     reset(mockListAvailableActionsUseCase)
     reset(mockSubscribeToActionUseCase)
     reset(mockUnsubscribeFromActionUseCase)
@@ -354,6 +374,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     ViMockDefaultActionService.mockClear()
     ViMockInitiateActionUseCase.mockClear()
     ViMockConfirmActionOutcomeUseCase.mockClear()
+    ViMockListActionsForDataHolderUseCase.mockClear()
     ViMockListAvailableActionsUseCase.mockClear()
     ViMockSubscribeToActionUseCase.mockClear()
     ViMockUnsubscribeFromActionUseCase.mockClear()
@@ -395,6 +416,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     })
     ViMockRescanVirtualPresenceUseCase.mockImplementation(function () {
       return instance(mockRescanVirtualPresenceUseCase)
+    })
+    ViMockRefreshVirtualPresenceStateUseCase.mockImplementation(function () {
+      return instance(mockRefreshVirtualPresenceStateUseCase)
     })
     ViMockSubscribeToVirtualPresenceUseCase.mockImplementation(function () {
       return instance(mockSubscribeToVirtualPresenceUseCase)
@@ -452,6 +476,9 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
     })
     ViMockGetActionUseCase.mockImplementation(function () {
       return instance(mockGetActionUseCase)
+    })
+    ViMockListActionsForDataHolderUseCase.mockImplementation(function () {
+      return instance(mockListActionsForDataHolderUseCase)
     })
     ViMockListAvailableActionsUseCase.mockImplementation(function () {
       return instance(mockListAvailableActionsUseCase)
@@ -769,6 +796,41 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       await expect(
         instanceUnderTest.rescanVirtualPresence({ id: 'testId' }),
       ).rejects.toThrow('rescan error')
+    })
+  })
+
+  describe('refreshVirtualPresenceState', () => {
+    beforeEach(() => {
+      when(
+        mockRefreshVirtualPresenceStateUseCase.execute(anything()),
+      ).thenResolve(EntityDataFactory.virtualPresence)
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.refreshVirtualPresenceState('testId')
+      expect(
+        vi.mocked(RefreshVirtualPresenceStateUseCase),
+      ).toHaveBeenCalledTimes(1)
+    })
+    it('calls use case with id', async () => {
+      await instanceUnderTest.refreshVirtualPresenceState('testId')
+      verify(mockRefreshVirtualPresenceStateUseCase.execute(anything())).once()
+      const [idArg] = capture(
+        mockRefreshVirtualPresenceStateUseCase.execute,
+      ).first()
+      expect(idArg).toBe('testId')
+    })
+    it('returns expected result', async () => {
+      await expect(
+        instanceUnderTest.refreshVirtualPresenceState('testId'),
+      ).resolves.toStrictEqual(APIDataFactory.virtualPresence)
+    })
+    it('throws when use case throws', async () => {
+      when(
+        mockRefreshVirtualPresenceStateUseCase.execute(anything()),
+      ).thenReject(new Error('refresh error'))
+      await expect(
+        instanceUnderTest.refreshVirtualPresenceState('testId'),
+      ).rejects.toThrow('refresh error')
     })
   })
 
@@ -1584,7 +1646,22 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       })
       verify(mockListAvailableActionsUseCase.execute(anything())).once()
       const [args] = capture(mockListAvailableActionsUseCase.execute).first()
-      expect(args).toStrictEqual({ dataHolderId: 'testDataHolderId' })
+      expect(args).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        includeCompleted: undefined,
+      })
+    })
+    it('forwards includeCompleted to the use case', async () => {
+      await instanceUnderTest.listAvailableActions({
+        dataHolderId: 'testDataHolderId',
+        includeCompleted: true,
+      })
+      verify(mockListAvailableActionsUseCase.execute(anything())).once()
+      const [args] = capture(mockListAvailableActionsUseCase.execute).first()
+      expect(args).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        includeCompleted: true,
+      })
     })
     it('returns transformed result', async () => {
       await expect(
@@ -1602,6 +1679,75 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
       )
       await expect(
         instanceUnderTest.listAvailableActions({
+          dataHolderId: 'testDataHolderId',
+        }),
+      ).rejects.toThrow('list error')
+    })
+  })
+
+  describe('listActionsForDataHolder', () => {
+    beforeEach(() => {
+      when(mockListActionsForDataHolderUseCase.execute(anything())).thenResolve(
+        {
+          actions: [EntityDataFactory.action],
+          nextToken: 'nextToken',
+        },
+      )
+    })
+    it('generates use case', async () => {
+      await instanceUnderTest.listActionsForDataHolder({
+        dataHolderId: 'testDataHolderId',
+      })
+      expect(vi.mocked(ListActionsForDataHolderUseCase)).toHaveBeenCalledTimes(
+        1,
+      )
+    })
+    it('calls use case with dataHolderId', async () => {
+      await instanceUnderTest.listActionsForDataHolder({
+        dataHolderId: 'testDataHolderId',
+      })
+      verify(mockListActionsForDataHolderUseCase.execute(anything())).once()
+      const [args] = capture(
+        mockListActionsForDataHolderUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        limit: undefined,
+        nextToken: undefined,
+      })
+    })
+    it('calls use case with limit and nextToken', async () => {
+      await instanceUnderTest.listActionsForDataHolder({
+        dataHolderId: 'testDataHolderId',
+        limit: 10,
+        nextToken: 'token',
+      })
+      verify(mockListActionsForDataHolderUseCase.execute(anything())).once()
+      const [args] = capture(
+        mockListActionsForDataHolderUseCase.execute,
+      ).first()
+      expect(args).toStrictEqual({
+        dataHolderId: 'testDataHolderId',
+        limit: 10,
+        nextToken: 'token',
+      })
+    })
+    it('returns transformed result', async () => {
+      await expect(
+        instanceUnderTest.listActionsForDataHolder({
+          dataHolderId: 'testDataHolderId',
+        }),
+      ).resolves.toStrictEqual({
+        items: [APIDataFactory.action],
+        nextToken: 'nextToken',
+      })
+    })
+    it('throws when use case throws', async () => {
+      when(mockListActionsForDataHolderUseCase.execute(anything())).thenReject(
+        new Error('list error'),
+      )
+      await expect(
+        instanceUnderTest.listActionsForDataHolder({
           dataHolderId: 'testDataHolderId',
         }),
       ).rejects.toThrow('list error')

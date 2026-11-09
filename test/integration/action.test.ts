@@ -132,7 +132,7 @@ describe('Action Integration Test Suite', () => {
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
     relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
-    testAdminClient = new TestAdminClient()
+    testAdminClient = new TestAdminClient(setup.privacyInteractionAdminEndpoint)
   })
 
   afterEach(async () => {
@@ -200,6 +200,16 @@ describe('Action Integration Test Suite', () => {
         stopContact.fulfilmentMethod,
       )
       expect(Object.values(ActionOrigin)).toContain(stopContact.origin)
+
+      // Each available action carries the latest status for the data holder:
+      // undefined when the user has never initiated this action, otherwise a
+      // valid lifecycle status. A freshly discovered action has not been
+      // initiated, so its status is undefined.
+      if (stopContact.status !== undefined) {
+        expect(Object.values(ActionStatus)).toContain(stopContact.status)
+      } else {
+        expect(stopContact.status).toBeUndefined()
+      }
     })
 
     it('returns an empty list for a data holder with no actions', async (ctx) => {
@@ -215,6 +225,56 @@ describe('Action Integration Test Suite', () => {
       expect(result).toBeDefined()
       expect(Array.isArray(result.items)).toBe(true)
       expect(result.items.length).toBe(0)
+    })
+
+    it('reflects a completed action when includeCompleted is set', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
+      const { dataHolderId } = await connectAndDiscoverDataHolder(
+        'action-include-completed@example.com',
+      )
+
+      // Wait for the discovery-derived STOP_CONTACT action to surface, then
+      // initiate it so the data holder has a persisted action with a status.
+      let stopContact: AvailableAction | undefined
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAvailableActions({
+            dataHolderId,
+          })
+          stopContact = result.items.find(
+            (action) => action.intent === ActionIntent.StopContact,
+          )
+          expect(stopContact).toBeDefined()
+        },
+        60000,
+        3000,
+      )
+
+      await instanceUnderTest.initiateAction({
+        dataHolderId,
+        intent: ActionIntent.StopContact,
+        fulfilmentMethod: stopContact!.fulfilmentMethod,
+      })
+
+      // By default, completed actions are omitted. Passing includeCompleted:
+      // true returns them as well; each returned action that has been initiated
+      // carries a valid lifecycle status.
+      const included = await instanceUnderTest.listAvailableActions({
+        dataHolderId,
+        includeCompleted: true,
+      })
+
+      expect(included).toBeDefined()
+      expect(Array.isArray(included.items)).toBe(true)
+      for (const action of included.items) {
+        if (action.status !== undefined) {
+          expect(Object.values(ActionStatus)).toContain(action.status)
+        }
+      }
     })
   })
 
@@ -321,6 +381,81 @@ describe('Action Integration Test Suite', () => {
       const result = await instanceUnderTest.getAction('non-existent-action-id')
 
       expect(result).toBeUndefined()
+    })
+  })
+
+  describe('listActionsForDataHolder', () => {
+    it('returns the persisted action history for a data holder', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
+      const { virtualPresenceId, dataHolderId } =
+        await connectAndDiscoverDataHolder('action-list-history@example.com')
+
+      let stopContact: AvailableAction | undefined
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listAvailableActions({
+            dataHolderId,
+          })
+          stopContact = result.items.find(
+            (action) => action.intent === ActionIntent.StopContact,
+          )
+          expect(stopContact).toBeDefined()
+        },
+        60000,
+        3000,
+      )
+
+      const initiated = await instanceUnderTest.initiateAction({
+        dataHolderId,
+        intent: ActionIntent.StopContact,
+        fulfilmentMethod: stopContact!.fulfilmentMethod,
+      })
+
+      // The initiated action must appear in the data holder's persisted history.
+      let history: Action[] = []
+      await waitForExpect(
+        async () => {
+          const result = await instanceUnderTest.listActionsForDataHolder({
+            dataHolderId,
+          })
+          history = result.items
+          expect(history.some((action) => action.id === initiated.id)).toBe(
+            true,
+          )
+        },
+        60000,
+        3000,
+      )
+
+      const historical = history.find((action) => action.id === initiated.id)!
+      expect(historical.dataHolderId).toBe(dataHolderId)
+      expect(historical.virtualPresenceId).toBe(virtualPresenceId)
+      expect(historical.intent).toBe(ActionIntent.StopContact)
+      expect(historical.fulfilmentMethod).toBe(initiated.fulfilmentMethod)
+      expect(Object.values(ActionStatus)).toContain(historical.status)
+      expect(historical.owner).toBeDefined()
+      expect(typeof historical.version).toBe('number')
+      expect(historical.createdAt).toBeInstanceOf(Date)
+      expect(historical.updatedAt).toBeInstanceOf(Date)
+    })
+
+    it('returns an empty list for a data holder with no action history', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
+      const result = await instanceUnderTest.listActionsForDataHolder({
+        dataHolderId: 'non-existent-data-holder-id',
+      })
+
+      expect(result).toBeDefined()
+      expect(Array.isArray(result.items)).toBe(true)
+      expect(result.items.length).toBe(0)
     })
   })
 

@@ -265,6 +265,36 @@ describe('Virtual Presence Integration Test Suite', () => {
     })
   })
 
+  describe('refreshVirtualPresenceState', () => {
+    it('refreshes the state of a connected virtual presence successfully', async () => {
+      const connectedVp =
+        await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
+          refreshToken: 'test-refresh-token',
+          providerIdentity: 'refresh-state-test@example.com',
+          relationshipProvider,
+        })
+      connectedIds.add(connectedVp.id)
+      expect(connectedVp).toBeDefined()
+
+      const refreshedVp = await instanceUnderTest.refreshVirtualPresenceState(
+        connectedVp.id,
+      )
+
+      expect(refreshedVp).toBeDefined()
+      expect(refreshedVp.id).toBe(connectedVp.id)
+      expect(refreshedVp.identifier).toBe('refresh-state-test@example.com')
+      expect(refreshedVp.owner).toBe(connectedVp.owner)
+      expect(refreshedVp.version).toBeGreaterThanOrEqual(connectedVp.version)
+      expect(refreshedVp.createdAt).toBeInstanceOf(Date)
+      expect(refreshedVp.updatedAt).toBeInstanceOf(Date)
+
+      // The reconciled state must be a valid virtual presence state. A valid
+      // provider grant leaves the presence in its current state; a revoked grant
+      // transitions it to NEEDS_REAUTH.
+      expect(Object.values(VirtualPresenceState)).toContain(refreshedVp.state)
+    })
+  })
+
   describe('virtual presence subscriptions', () => {
     it('successfully subscribes and receives connected state', async () => {
       const subscriptionId = v4()

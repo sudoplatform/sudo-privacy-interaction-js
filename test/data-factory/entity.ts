@@ -266,5 +266,6 @@ export class EntityDataFactory {
     origin: ActionOriginEntity.Discovery,
     title: 'Unsubscribe',
     description: 'Opt out of marketing communications.',
+    status: ActionStatusEntity.InProgress,
   }
 }

@@ -20,6 +20,14 @@ describe('AvailableActionTransformer Test Suite', () => {
         ),
       ).toStrictEqual(EntityDataFactory.availableAction)
     })
+
+    it('maps a null status to undefined', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity({
+        ...GraphQLDataFactory.availableAction,
+        status: null,
+      })
+      expect(result.status).toBeUndefined()
+    })
   })
 
   describe('fromEntityToAPI', () => {
@@ -27,6 +35,14 @@ describe('AvailableActionTransformer Test Suite', () => {
       expect(
         instanceUnderTest.fromEntityToAPI(EntityDataFactory.availableAction),
       ).toStrictEqual(APIDataFactory.availableAction)
+    })
+
+    it('leaves status undefined when the entity has no status', () => {
+      const result = instanceUnderTest.fromEntityToAPI({
+        ...EntityDataFactory.availableAction,
+        status: undefined,
+      })
+      expect(result.status).toBeUndefined()
     })
   })
 })

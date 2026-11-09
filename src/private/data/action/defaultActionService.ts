@@ -13,6 +13,8 @@ import { ActionEntity } from '../../domain/entities/action/actionEntity'
 import {
   ActionService,
   InitiateActionInput,
+  ListActionsForDataHolderInput,
+  ListActionsForDataHolderOutput,
   ListAvailableActionsInput,
   ListAvailableActionsOutput,
   SubscribeToActionsInput,
@@ -79,6 +81,19 @@ export class DefaultActionService implements ActionService {
     )
     return {
       availableActions,
+      nextToken: result.nextToken ?? undefined,
+    }
+  }
+
+  async listForDataHolder(
+    input: ListActionsForDataHolderInput,
+  ): Promise<ListActionsForDataHolderOutput> {
+    const result = await this.appSync.listActionsForDataHolder(input)
+    const actions = (result.items ?? []).map((item) =>
+      this.actionTransformer.fromGraphQLToEntity(item),
+    )
+    return {
+      actions,
       nextToken: result.nextToken ?? undefined,
     }
   }

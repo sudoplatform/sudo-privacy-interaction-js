@@ -20,7 +20,10 @@ import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
-import { resolveRelationshipProvider } from './util/relationshipProvider'
+import {
+  isTestProviderEnabled,
+  resolveRelationshipProvider,
+} from './util/relationshipProvider'
 import { TestAdminClient } from './util/testAdminClient'
 
 describe('Data Holder Integration Test Suite', () => {
@@ -31,6 +34,11 @@ describe('Data Holder Integration Test Suite', () => {
   let userClient: SudoUserClient
   let relationshipProvider: RelationshipProvider
   let testAdminClient: TestAdminClient
+
+  // Resolved once against a throwaway client. This suite depends on the TEST
+  // provider to seed data holders, so every test is skipped when the TEST
+  // provider is not enabled for the environment.
+  let testProviderEnabled = false
 
   const connectedIds = new Set<string>()
   const seededEmailIds = new Set<string>()
@@ -59,15 +67,39 @@ describe('Data Holder Integration Test Suite', () => {
     }
   }
 
+  beforeAll(async () => {
+    // One-time probe to decide whether the TEST provider is enabled. Uses a
+    // dedicated client that is torn down immediately afterwards.
+    const probe = await setupPrivacyInteractionClient(log)
+    try {
+      testProviderEnabled = await isTestProviderEnabled(
+        probe.privacyInteractionClient,
+      )
+      if (!testProviderEnabled) {
+        log.info(
+          'TEST provider not enabled; Data Holder integration tests will be skipped.',
+        )
+      }
+    } finally {
+      await probe.userClient.reset()
+    }
+  })
+
   beforeEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
     relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
-    testAdminClient = new TestAdminClient()
+    testAdminClient = new TestAdminClient(setup.privacyInteractionAdminEndpoint)
   })
 
   afterEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     for (const id of connectedIds) {
       try {
         await instanceUnderTest.disconnectVirtualPresence(id)
@@ -93,7 +125,12 @@ describe('Data Holder Integration Test Suite', () => {
   })
 
   describe('listDataHolders', () => {
-    it('lists data holders for a connected virtual presence', async () => {
+    it('lists data holders for a connected virtual presence', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
@@ -128,7 +165,12 @@ describe('Data Holder Integration Test Suite', () => {
       }
     })
 
-    it('retrieves a list of data holders with pagination', async () => {
+    it('retrieves a list of data holders with pagination', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
@@ -159,7 +201,12 @@ describe('Data Holder Integration Test Suite', () => {
   })
 
   describe('getDataHolder', () => {
-    it('retrieves a single data holder successfully', async () => {
+    it('retrieves a single data holder successfully', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
@@ -189,7 +236,12 @@ describe('Data Holder Integration Test Suite', () => {
       }
     })
 
-    it('returns undefined for non-existent data holder', async () => {
+    it('returns undefined for non-existent data holder', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const result = await instanceUnderTest.getDataHolder(
         'non-existent-data-holder-id',
       )
@@ -199,7 +251,12 @@ describe('Data Holder Integration Test Suite', () => {
   })
 
   describe('archiveDataHolder / unarchiveDataHolder', () => {
-    it('archives a data holder then unarchives it back to monitored', async () => {
+    it('archives a data holder then unarchives it back to monitored', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       // Seed an email and connect so discovery surfaces at least one data holder.
       const providerIdentity = 'dh-archive@example.com'
       await seedTestEmails(providerIdentity)
@@ -244,7 +301,12 @@ describe('Data Holder Integration Test Suite', () => {
   })
 
   describe('data holder subscriptions', () => {
-    it('successfully subscribes and receives connected state', async () => {
+    it('successfully subscribes and receives connected state', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       let connectionState: ConnectionState = ConnectionState.Disconnected
       let connectionStateChangeCalled = false
@@ -263,7 +325,12 @@ describe('Data Holder Integration Test Suite', () => {
       instanceUnderTest.unsubscribeFromDataHolders(subscriptionId)
     })
 
-    it('does not notify after unsubscribing', async () => {
+    it('does not notify after unsubscribing', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       let updateCalled = false
 
@@ -290,7 +357,12 @@ describe('Data Holder Integration Test Suite', () => {
       })
     })
 
-    it('supports multiple subscribers without error', async () => {
+    it('supports multiple subscribers without error', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId1 = v4()
       const subscriptionId2 = v4()
       let subscriber1Connected = false
@@ -321,7 +393,12 @@ describe('Data Holder Integration Test Suite', () => {
       instanceUnderTest.unsubscribeFromDataHolders(subscriptionId2)
     })
 
-    it('receives data holder updates after discovery', async () => {
+    it('receives data holder updates after discovery', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       const receivedDataHolders: DataHolder[] = []
       let connectionState: ConnectionState = ConnectionState.Disconnected
@@ -331,7 +408,6 @@ describe('Data Holder Integration Test Suite', () => {
           receivedDataHolders.push(...updatedDataHolders)
         },
         connectionStatusChanged(state: unknown) {
-          console.log('Data holder subscription connection state:', state)
           connectionState = state
         },
       }

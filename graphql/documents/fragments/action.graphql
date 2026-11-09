@@ -37,4 +37,5 @@ fragment AvailableActionFields on AvailableAction {
   origin
   title
   description
+  status
 }

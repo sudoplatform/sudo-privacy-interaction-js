@@ -18,7 +18,11 @@ export type ActionIntent =
   | 'DELETE_MY_DATA'
   | 'LIMIT_DATA_USE'
   | 'OTHER'
+  | 'SAVE_IN_PASSWORD'
   | 'STOP_CONTACT'
+  | 'SWAP_EMAIL'
+  | 'SWAP_PHONE'
+  | 'SWAP_VIRTUAL_CARD'
   | '%future added value'
 
 export type ActionOrigin =
@@ -225,6 +229,7 @@ export type AvailableActionFieldsFragment = {
   origin: ActionOrigin
   title: string | null
   description: string | null
+  status: ActionStatus | null
 }
 
 export type AnalysisResultDataFieldsFragment = {
@@ -524,6 +529,32 @@ export type RescanVirtualPresenceMutationVariables = Exact<{
 
 export type RescanVirtualPresenceMutation = {
   rescanVirtualPresence: {
+    id: string
+    providerType: ProviderType
+    identifier: string
+    state: VirtualPresenceState
+    lastScannedAtEpochMs: number
+    lastScanFailureReason: string | null
+    owner: string
+    version: number
+    createdAtEpochMs: number
+    updatedAtEpochMs: number
+    dataHolderCount: {
+      count: number
+      monitored: number
+      initiatedActions: number
+      completedActions: number
+      archived: number
+    }
+  }
+}
+
+export type RefreshVirtualPresenceStateMutationVariables = Exact<{
+  id: string
+}>
+
+export type RefreshVirtualPresenceStateMutation = {
+  refreshVirtualPresenceState: {
     id: string
     providerType: ProviderType
     identifier: string
@@ -990,6 +1021,7 @@ export type ListDataHolderScanSummariesQuery = {
 
 export type ListAvailableActionsQueryVariables = Exact<{
   dataHolderId: string | number
+  includeCompleted?: boolean | null | undefined
 }>
 
 export type ListAvailableActionsQuery = {
@@ -1002,6 +1034,47 @@ export type ListAvailableActionsQuery = {
       origin: ActionOrigin
       title: string | null
       description: string | null
+      status: ActionStatus | null
+    }>
+  }
+}
+
+export type ListActionsForDataHolderQueryVariables = Exact<{
+  dataHolderId: string | number
+  limit?: number | null | undefined
+  nextToken?: string | null | undefined
+}>
+
+export type ListActionsForDataHolderQuery = {
+  listActionsForDataHolder: {
+    nextToken: string | null
+    items: Array<{
+      id: string
+      virtualPresenceId: string
+      dataHolderId: string | null
+      intent: ActionIntent
+      additionalInfo: string | null
+      fulfilmentMethod: ActionFulfilmentMethod
+      status: ActionStatus
+      initiatedAtEpochMs: number | null
+      completedAtEpochMs: number | null
+      owner: string
+      version: number
+      createdAtEpochMs: number
+      updatedAtEpochMs: number
+      assistedPayload: {
+        toAddress: string | null
+        unsubscribeUrl: string | null
+        unsubscribeMailto: string | null
+        jurisdiction: string | null
+        instructions: string | null
+        contact: {
+          email: string | null
+          phone: string | null
+          address: string | null
+        } | null
+        emailTemplate: { subject: string | null; body: string } | null
+      } | null
     }>
   }
 }
@@ -1242,6 +1315,7 @@ export const AvailableActionFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'origin' } },
           { kind: 'Field', name: { kind: 'Name', value: 'title' } },
           { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
         ],
       },
     },
@@ -2446,6 +2520,109 @@ export const RescanVirtualPresenceDocument = {
 } as unknown as DocumentNode<
   RescanVirtualPresenceMutation,
   RescanVirtualPresenceMutationVariables
+>
+export const RefreshVirtualPresenceStateDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'mutation',
+      name: { kind: 'Name', value: 'RefreshVirtualPresenceState' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: { kind: 'Variable', name: { kind: 'Name', value: 'id' } },
+          type: {
+            kind: 'NonNullType',
+            type: {
+              kind: 'NamedType',
+              name: { kind: 'Name', value: 'String' },
+            },
+          },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'refreshVirtualPresenceState' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'id' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'id' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'FragmentSpread',
+                  name: { kind: 'Name', value: 'VirtualPresenceFields' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'VirtualPresenceFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'VirtualPresence' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'providerType' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'identifier' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'state' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScannedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'lastScanFailureReason' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'dataHolderCount' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'count' } },
+                { kind: 'Field', name: { kind: 'Name', value: 'monitored' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'initiatedActions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'completedActions' },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'archived' } },
+              ],
+            },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  RefreshVirtualPresenceStateMutation,
+  RefreshVirtualPresenceStateMutationVariables
 >
 export const InitiateActionDocument = {
   kind: 'Document',
@@ -4386,6 +4563,14 @@ export const ListAvailableActionsDocument = {
             type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
           },
         },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'includeCompleted' },
+          },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Boolean' } },
+        },
       ],
       selectionSet: {
         kind: 'SelectionSet',
@@ -4400,6 +4585,14 @@ export const ListAvailableActionsDocument = {
                 value: {
                   kind: 'Variable',
                   name: { kind: 'Name', value: 'dataHolderId' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'includeCompleted' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'includeCompleted' },
                 },
               },
             ],
@@ -4442,6 +4635,7 @@ export const ListAvailableActionsDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'origin' } },
           { kind: 'Field', name: { kind: 'Name', value: 'title' } },
           { kind: 'Field', name: { kind: 'Name', value: 'description' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
         ],
       },
     },
@@ -4449,6 +4643,189 @@ export const ListAvailableActionsDocument = {
 } as unknown as DocumentNode<
   ListAvailableActionsQuery,
   ListAvailableActionsQueryVariables
+>
+export const ListActionsForDataHolderDocument = {
+  kind: 'Document',
+  definitions: [
+    {
+      kind: 'OperationDefinition',
+      operation: 'query',
+      name: { kind: 'Name', value: 'ListActionsForDataHolder' },
+      variableDefinitions: [
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'dataHolderId' },
+          },
+          type: {
+            kind: 'NonNullType',
+            type: { kind: 'NamedType', name: { kind: 'Name', value: 'ID' } },
+          },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'limit' },
+          },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'Int' } },
+        },
+        {
+          kind: 'VariableDefinition',
+          variable: {
+            kind: 'Variable',
+            name: { kind: 'Name', value: 'nextToken' },
+          },
+          type: { kind: 'NamedType', name: { kind: 'Name', value: 'String' } },
+        },
+      ],
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'listActionsForDataHolder' },
+            arguments: [
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'dataHolderId' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'dataHolderId' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'limit' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'limit' },
+                },
+              },
+              {
+                kind: 'Argument',
+                name: { kind: 'Name', value: 'nextToken' },
+                value: {
+                  kind: 'Variable',
+                  name: { kind: 'Name', value: 'nextToken' },
+                },
+              },
+            ],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'items' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'FragmentSpread',
+                        name: { kind: 'Name', value: 'ActionFields' },
+                      },
+                    ],
+                  },
+                },
+                { kind: 'Field', name: { kind: 'Name', value: 'nextToken' } },
+              ],
+            },
+          },
+        ],
+      },
+    },
+    {
+      kind: 'FragmentDefinition',
+      name: { kind: 'Name', value: 'ActionFields' },
+      typeCondition: {
+        kind: 'NamedType',
+        name: { kind: 'Name', value: 'Action' },
+      },
+      selectionSet: {
+        kind: 'SelectionSet',
+        selections: [
+          { kind: 'Field', name: { kind: 'Name', value: 'id' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'virtualPresenceId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'dataHolderId' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'intent' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'additionalInfo' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'fulfilmentMethod' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'status' } },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'assistedPayload' },
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [
+                { kind: 'Field', name: { kind: 'Name', value: 'toAddress' } },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeUrl' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'unsubscribeMailto' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'contact' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      { kind: 'Field', name: { kind: 'Name', value: 'email' } },
+                      { kind: 'Field', name: { kind: 'Name', value: 'phone' } },
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'address' },
+                      },
+                    ],
+                  },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'jurisdiction' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'instructions' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'emailTemplate' },
+                  selectionSet: {
+                    kind: 'SelectionSet',
+                    selections: [
+                      {
+                        kind: 'Field',
+                        name: { kind: 'Name', value: 'subject' },
+                      },
+                      { kind: 'Field', name: { kind: 'Name', value: 'body' } },
+                    ],
+                  },
+                },
+              ],
+            },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'initiatedAtEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'completedAtEpochMs' },
+          },
+          { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'version' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'createdAtEpochMs' } },
+          { kind: 'Field', name: { kind: 'Name', value: 'updatedAtEpochMs' } },
+        ],
+      },
+    },
+  ],
+} as unknown as DocumentNode<
+  ListActionsForDataHolderQuery,
+  ListActionsForDataHolderQueryVariables
 >
 export const GetActionDocument = {
   kind: 'Document',

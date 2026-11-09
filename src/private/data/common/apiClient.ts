@@ -24,6 +24,7 @@ import {
   AnalysisResult,
   AnalysisResultConnection,
   Action,
+  ActionConnection,
   ArchiveDataHolderDocument,
   ArchiveDataHolderMutation,
   ArchiveDataHolderMutationVariables,
@@ -67,6 +68,9 @@ import {
   ListAnalysisResultsDocument,
   ListAnalysisResultsQuery,
   ListAnalysisResultsQueryVariables,
+  ListActionsForDataHolderDocument,
+  ListActionsForDataHolderQuery,
+  ListActionsForDataHolderQueryVariables,
   ListAvailableActionsDocument,
   ListAvailableActionsQuery,
   ListAvailableActionsQueryVariables,
@@ -92,6 +96,9 @@ import {
   OnVirtualPresenceUpdateDocument,
   OnVirtualPresenceUpdateSubscription,
   OnVirtualPresenceUpdateSubscriptionVariables,
+  RefreshVirtualPresenceStateDocument,
+  RefreshVirtualPresenceStateMutation,
+  RefreshVirtualPresenceStateMutationVariables,
   RescanVirtualPresenceDocument,
   RescanVirtualPresenceMutation,
   RescanVirtualPresenceMutationVariables,
@@ -151,6 +158,18 @@ export class ApiClient {
       calleeName: this.rescanVirtualPresence.name,
     })
     return data.rescanVirtualPresence
+  }
+
+  public async refreshVirtualPresenceState(
+    id: string,
+  ): Promise<VirtualPresence> {
+    const data =
+      await this.performMutation<RefreshVirtualPresenceStateMutation>({
+        mutation: RefreshVirtualPresenceStateDocument,
+        variables: { id } as RefreshVirtualPresenceStateMutationVariables,
+        calleeName: this.refreshVirtualPresenceState.name,
+      })
+    return data.refreshVirtualPresenceState
   }
 
   public async listVirtualPresences(
@@ -313,15 +332,34 @@ export class ApiClient {
 
   public async listAvailableActions(input: {
     dataHolderId: string
+    includeCompleted?: boolean
   }): Promise<AvailableActionConnection> {
     const data = await this.performQuery<ListAvailableActionsQuery>({
       query: ListAvailableActionsDocument,
       variables: {
         dataHolderId: input.dataHolderId,
+        includeCompleted: input.includeCompleted,
       } as ListAvailableActionsQueryVariables,
       calleeName: this.listAvailableActions.name,
     })
     return data.listAvailableActions
+  }
+
+  public async listActionsForDataHolder(input: {
+    dataHolderId: string
+    limit?: number
+    nextToken?: string
+  }): Promise<ActionConnection> {
+    const data = await this.performQuery<ListActionsForDataHolderQuery>({
+      query: ListActionsForDataHolderDocument,
+      variables: {
+        dataHolderId: input.dataHolderId,
+        limit: input.limit,
+        nextToken: input.nextToken,
+      } as ListActionsForDataHolderQueryVariables,
+      calleeName: this.listActionsForDataHolder.name,
+    })
+    return data.listActionsForDataHolder
   }
 
   public onVirtualPresenceUpdated(

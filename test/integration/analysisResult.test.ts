@@ -20,7 +20,10 @@ import {
   SetupPrivacyInteractionClientOutput,
   setupPrivacyInteractionClient,
 } from './util/privacyInteractionClientLifecycle'
-import { resolveRelationshipProvider } from './util/relationshipProvider'
+import {
+  isTestProviderEnabled,
+  resolveRelationshipProvider,
+} from './util/relationshipProvider'
 import { TestAdminClient } from './util/testAdminClient'
 
 describe('Analysis Result Integration Test Suite', () => {
@@ -31,6 +34,12 @@ describe('Analysis Result Integration Test Suite', () => {
   let userClient: SudoUserClient
   let relationshipProvider: RelationshipProvider
   let testAdminClient: TestAdminClient
+
+  // Resolved once against a throwaway client. This suite depends on the TEST
+  // provider to seed emails that drive the discovery → analysis pipeline, so
+  // every test is skipped when the TEST provider is not enabled for the
+  // environment.
+  let testProviderEnabled = false
 
   const connectedIds = new Set<string>()
 
@@ -60,15 +69,39 @@ describe('Analysis Result Integration Test Suite', () => {
     }
   }
 
+  beforeAll(async () => {
+    // One-time probe to decide whether the TEST provider is enabled. Uses a
+    // dedicated client that is torn down immediately afterwards.
+    const probe = await setupPrivacyInteractionClient(log)
+    try {
+      testProviderEnabled = await isTestProviderEnabled(
+        probe.privacyInteractionClient,
+      )
+      if (!testProviderEnabled) {
+        log.info(
+          'TEST provider not enabled; Analysis Result integration tests will be skipped.',
+        )
+      }
+    } finally {
+      await probe.userClient.reset()
+    }
+  })
+
   beforeEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     setup = await setupPrivacyInteractionClient(log)
     instanceUnderTest = setup.privacyInteractionClient
     userClient = setup.userClient
     relationshipProvider = await resolveRelationshipProvider(instanceUnderTest)
-    testAdminClient = new TestAdminClient()
+    testAdminClient = new TestAdminClient(setup.privacyInteractionAdminEndpoint)
   })
 
   afterEach(async () => {
+    if (!testProviderEnabled) {
+      return
+    }
     for (const id of connectedIds) {
       try {
         await instanceUnderTest.disconnectVirtualPresence(id)
@@ -94,7 +127,12 @@ describe('Analysis Result Integration Test Suite', () => {
   })
 
   describe('getAnalysisResult', () => {
-    it('returns undefined for a non-existent analysis result', async () => {
+    it('returns undefined for a non-existent analysis result', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const result =
         await instanceUnderTest.getAnalysisResult('non-existent-id')
 
@@ -103,7 +141,12 @@ describe('Analysis Result Integration Test Suite', () => {
   })
 
   describe('listAnalysisResults', () => {
-    it('lists analysis results for a virtual presence after discovery', async () => {
+    it('lists analysis results for a virtual presence after discovery', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const providerIdentity = 'analysisresult-test@example.com'
       await seedTestEmails(providerIdentity)
       const connectedVp =
@@ -151,7 +194,12 @@ describe('Analysis Result Integration Test Suite', () => {
       }
     })
 
-    it('returns an empty list when no analysis results exist', async () => {
+    it('returns an empty list when no analysis results exist', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const connectedVp =
         await instanceUnderTest.connectVirtualPresenceWithRefreshToken({
           refreshToken: 'test-refresh-token',
@@ -170,7 +218,12 @@ describe('Analysis Result Integration Test Suite', () => {
       expect(Array.isArray(result.items)).toBe(true)
     })
 
-    it('respects limit parameter', async () => {
+    it('respects limit parameter', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const providerIdentity = 'list-ar-limit@example.com'
       await seedTestEmails(providerIdentity)
       const connectedVp =
@@ -201,7 +254,12 @@ describe('Analysis Result Integration Test Suite', () => {
       expect(result.items.length).toBeLessThanOrEqual(1)
     })
 
-    it('supports pagination with nextToken', async () => {
+    it('supports pagination with nextToken', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const providerIdentity = 'list-ar-pagination@example.com'
       await seedTestEmails(providerIdentity)
       const connectedVp =
@@ -243,7 +301,12 @@ describe('Analysis Result Integration Test Suite', () => {
   })
 
   describe('analysis result subscriptions', () => {
-    it('successfully subscribes and receives connected state', async () => {
+    it('successfully subscribes and receives connected state', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       let connectionState: ConnectionState = ConnectionState.Disconnected
       let connectionStateChangeCalled = false
@@ -262,7 +325,12 @@ describe('Analysis Result Integration Test Suite', () => {
       instanceUnderTest.unsubscribeFromAnalysisResult(subscriptionId)
     })
 
-    it('does not notify after unsubscribing', async () => {
+    it('does not notify after unsubscribing', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       let updateCalled = false
 
@@ -289,7 +357,12 @@ describe('Analysis Result Integration Test Suite', () => {
       })
     })
 
-    it('supports multiple subscribers without error', async () => {
+    it('supports multiple subscribers without error', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId1 = v4()
       const subscriptionId2 = v4()
       let subscriber1Connected = false
@@ -319,7 +392,12 @@ describe('Analysis Result Integration Test Suite', () => {
       instanceUnderTest.unsubscribeFromAnalysisResult(subscriptionId2)
     })
 
-    it('receives analysis result updates after discovery triggers analysis', async () => {
+    it('receives analysis result updates after discovery triggers analysis', async (ctx) => {
+      if (!testProviderEnabled) {
+        ctx.skip()
+        return
+      }
+
       const subscriptionId = v4()
       const analysisResultUpdates: AnalysisResultUpdate[] = []
       let connectionState: ConnectionState = ConnectionState.Disconnected

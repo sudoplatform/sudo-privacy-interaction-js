@@ -93,6 +93,11 @@ export class DefaultVirtualPresenceService implements VirtualPresenceService {
     return this.virtualPresenceTransformer.fromGraphQLToEntity(result)
   }
 
+  async refreshState(id: string): Promise<VirtualPresenceEntity> {
+    const result = await this.appSync.refreshVirtualPresenceState(id)
+    return this.virtualPresenceTransformer.fromGraphQLToEntity(result)
+  }
+
   async subscribe(input: SubscribeToVirtualPresenceInput): Promise<void> {
     this.subscriptionManager.subscribe(input.subscriptionId, input.subscriber)
 

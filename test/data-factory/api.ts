@@ -248,5 +248,6 @@ export class APIDataFactory {
     origin: ActionOrigin.Discovery,
     title: 'Unsubscribe',
     description: 'Opt out of marketing communications.',
+    status: ActionStatus.InProgress,
   }
 }

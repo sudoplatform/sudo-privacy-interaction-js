@@ -31,6 +31,7 @@ import { GetAnalysisResultUseCase } from '../private/domain/use-cases/analysis-r
 import { ConfirmActionOutcomeUseCase } from '../private/domain/use-cases/action/confirmActionOutcomeUseCase'
 import { GetActionUseCase } from '../private/domain/use-cases/action/getActionUseCase'
 import { InitiateActionUseCase } from '../private/domain/use-cases/action/initiateActionUseCase'
+import { ListActionsForDataHolderUseCase } from '../private/domain/use-cases/action/listActionsForDataHolderUseCase'
 import { ListAvailableActionsUseCase } from '../private/domain/use-cases/action/listAvailableActionsUseCase'
 import { SubscribeToActionUseCase } from '../private/domain/use-cases/action/subscribeToActionUseCase'
 import { UnsubscribeFromActionUseCase } from '../private/domain/use-cases/action/unsubscribeFromActionUseCase'
@@ -50,6 +51,7 @@ import { ConnectVirtualPresenceWithAuthCodeUseCase } from '../private/domain/use
 import { ConnectVirtualPresenceWithRefreshTokenUseCase } from '../private/domain/use-cases/virtual-presence/connectVirtualPresenceWithRefreshTokenUseCase'
 import { DisconnectVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/disconnectVirtualPresenceUseCase'
 import { ListVirtualPresencesUseCase } from '../private/domain/use-cases/virtual-presence/listVirtualPresencesUseCase'
+import { RefreshVirtualPresenceStateUseCase } from '../private/domain/use-cases/virtual-presence/refreshVirtualPresenceStateUseCase'
 import { RescanVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/rescanVirtualPresenceUseCase'
 import { SubscribeToVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/subscribeToVirtualPresenceUseCase'
 import { UnsubscribeFromVirtualPresenceUseCase } from '../private/domain/use-cases/virtual-presence/unsubscribeFromVirtualPresenceUseCase'
@@ -60,6 +62,7 @@ import {
   GetOrganizationAnalysisInput,
   InitiateActionInput,
   ListAnalysisResultsInput,
+  ListActionsForDataHolderInput,
   ListAvailableActionsInput,
   ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
@@ -222,6 +225,17 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       this.virtualPresenceService,
     )
     const result = await useCase.execute(input)
+    return this.virtualPresenceTransformer.fromEntityToAPI(result)
+  }
+
+  public async refreshVirtualPresenceState(
+    id: string,
+  ): Promise<VirtualPresence> {
+    this.log.debug(this.refreshVirtualPresenceState.name, { id })
+    const useCase = new RefreshVirtualPresenceStateUseCase(
+      this.virtualPresenceService,
+    )
+    const result = await useCase.execute(id)
     return this.virtualPresenceTransformer.fromEntityToAPI(result)
   }
 
@@ -509,12 +523,31 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
     this.log.debug(this.listAvailableActions.name, { input })
     const useCase = new ListAvailableActionsUseCase(this.actionService)
     const { availableActions, nextToken: resultNextToken } =
-      await useCase.execute({ dataHolderId: input.dataHolderId })
+      await useCase.execute({
+        dataHolderId: input.dataHolderId,
+        includeCompleted: input.includeCompleted,
+      })
     const transformedAvailableActions = availableActions.map(
       (availableAction) =>
         this.availableActionTransformer.fromEntityToAPI(availableAction),
     )
     return { items: transformedAvailableActions, nextToken: resultNextToken }
+  }
+
+  public async listActionsForDataHolder(
+    input: ListActionsForDataHolderInput,
+  ): Promise<ListOutput<Action>> {
+    this.log.debug(this.listActionsForDataHolder.name, { input })
+    const useCase = new ListActionsForDataHolderUseCase(this.actionService)
+    const { actions, nextToken: resultNextToken } = await useCase.execute({
+      dataHolderId: input.dataHolderId,
+      limit: input.limit,
+      nextToken: input.nextToken,
+    })
+    const transformedActions = actions.map((action) =>
+      this.actionTransformer.fromEntityToAPI(action),
+    )
+    return { items: transformedActions, nextToken: resultNextToken }
   }
 
   public async subscribeToActions(

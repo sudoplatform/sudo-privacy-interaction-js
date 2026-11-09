@@ -35,6 +35,11 @@ export type Action = {
   virtualPresenceId: Scalars['ID']['output']
 }
 
+export type ActionConnection = {
+  items: Array<Action>
+  nextToken?: Maybe<Scalars['String']['output']>
+}
+
 export type ActionContact = {
   address?: Maybe<Scalars['String']['output']>
   email?: Maybe<Scalars['String']['output']>
@@ -49,7 +54,11 @@ export type ActionIntent =
   | 'DELETE_MY_DATA'
   | 'LIMIT_DATA_USE'
   | 'OTHER'
+  | 'SAVE_IN_PASSWORD'
   | 'STOP_CONTACT'
+  | 'SWAP_EMAIL'
+  | 'SWAP_PHONE'
+  | 'SWAP_VIRTUAL_CARD'
   | '%future added value'
 
 export type ActionOrigin =
@@ -149,6 +158,7 @@ export type AvailableAction = {
   fulfilmentMethod: ActionFulfilmentMethod
   intent: ActionIntent
   origin: ActionOrigin
+  status?: Maybe<ActionStatus>
   title?: Maybe<Scalars['String']['output']>
 }
 
@@ -220,9 +230,6 @@ export type DataHolder = {
   version: Scalars['Int']['output']
   virtualPresenceId: Scalars['ID']['output']
 }
-
-export type DataHolderChangeType =
-  'METADATA_UPDATE' | 'NEW' | 'SIGNIFICANT_UPDATE' | '%future added value'
 
 export type DataHolderConnection = {
   items: Array<DataHolder>
@@ -318,6 +325,14 @@ export type Mutation = {
    */
   initiateAction: Action
   /**
+   * Validate a virtual presence's provider grant on demand and return its
+   * reconciled state. If the provider confirms the grant has been revoked (e.g.
+   * the user removed access in their provider account), the presence transitions
+   * to NEEDS_REAUTH; otherwise its state is returned unchanged. Use before gating
+   * access on a current CONNECTED state.
+   */
+  refreshVirtualPresenceState: VirtualPresence
+  /**
    * Rescan an existing virtual presence for new data holders.
    * Scans from the last scan date forward.
    */
@@ -348,6 +363,10 @@ export type MutationDisconnectVirtualPresenceArgs = {
 
 export type MutationInitiateActionArgs = {
   input: InitiateActionInput
+}
+
+export type MutationRefreshVirtualPresenceStateArgs = {
+  id: Scalars['String']['input']
 }
 
 export type MutationRescanVirtualPresenceArgs = {
@@ -475,12 +494,24 @@ export type Query = {
    * the provider OAuth flow.
    */
   getProviderConfiguration: ProviderConfiguration
+  /**
+   * List the persisted action history for a data holder. Returns every action
+   * that has been initiated against the data holder (all intents, all statuses,
+   * every attempt), ordered newest-first. This is the executed-action history,
+   * distinct from listAvailableActions, which returns the derived set of actions
+   * a user could take.
+   */
+  listActionsForDataHolder: ActionConnection
   /** List analysis results for a virtual presence. */
   listAnalysisResults: AnalysisResultConnection
   /**
    * List the actions currently available for a data holder relationship. Derived
    * at query time by merging static, analysis, and discovery sources; not
    * persisted. The owning virtual presence is derived from the data holder.
+   *
+   * Each returned action carries its latest status for the data holder (null when
+   * never initiated). By default actions the user has already completed are
+   * omitted; pass includeCompleted: true to return them as well.
    */
   listAvailableActions: AvailableActionConnection
   /** List scan summaries for a data holder (most recent first) */
@@ -509,6 +540,12 @@ export type QueryGetOrganizationAnalysisArgs = {
   options?: InputMaybe<OrganizationAnalysisOptions>
 }
 
+export type QueryListActionsForDataHolderArgs = {
+  dataHolderId: Scalars['ID']['input']
+  limit?: InputMaybe<Scalars['Int']['input']>
+  nextToken?: InputMaybe<Scalars['String']['input']>
+}
+
 export type QueryListAnalysisResultsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>
   nextToken?: InputMaybe<Scalars['String']['input']>
@@ -517,6 +554,7 @@ export type QueryListAnalysisResultsArgs = {
 
 export type QueryListAvailableActionsArgs = {
   dataHolderId: Scalars['ID']['input']
+  includeCompleted?: InputMaybe<Scalars['Boolean']['input']>
 }
 
 export type QueryListDataHolderScanSummariesArgs = {

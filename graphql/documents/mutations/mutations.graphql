@@ -16,6 +16,12 @@ mutation RescanVirtualPresence($id: String!, $options: ScanOptionsInput) {
   }
 }
 
+mutation RefreshVirtualPresenceState($id: String!) {
+  refreshVirtualPresenceState(id: $id) {
+    ...VirtualPresenceFields
+  }
+}
+
 mutation InitiateAction($input: InitiateActionInput!) {
   initiateAction(input: $input) {
     ...ActionFields

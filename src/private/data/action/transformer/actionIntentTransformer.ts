@@ -19,6 +19,14 @@ export class ActionIntentTransformer {
         return ActionIntent.DeleteMyData
       case ActionIntentEntity.LimitDataUse:
         return ActionIntent.LimitDataUse
+      case ActionIntentEntity.SwapEmail:
+        return ActionIntent.SwapEmail
+      case ActionIntentEntity.SwapPhone:
+        return ActionIntent.SwapPhone
+      case ActionIntentEntity.SwapVirtualCard:
+        return ActionIntent.SwapVirtualCard
+      case ActionIntentEntity.SaveInPassword:
+        return ActionIntent.SaveInPassword
       case ActionIntentEntity.Other:
         return ActionIntent.Other
     }
@@ -34,6 +42,14 @@ export class ActionIntentTransformer {
         return ActionIntentEntity.DeleteMyData
       case ActionIntent.LimitDataUse:
         return ActionIntentEntity.LimitDataUse
+      case ActionIntent.SwapEmail:
+        return ActionIntentEntity.SwapEmail
+      case ActionIntent.SwapPhone:
+        return ActionIntentEntity.SwapPhone
+      case ActionIntent.SwapVirtualCard:
+        return ActionIntentEntity.SwapVirtualCard
+      case ActionIntent.SaveInPassword:
+        return ActionIntentEntity.SaveInPassword
       case ActionIntent.Other:
         return ActionIntentEntity.Other
     }
@@ -49,6 +65,14 @@ export class ActionIntentTransformer {
         return ActionIntentEntity.DeleteMyData
       case 'LIMIT_DATA_USE':
         return ActionIntentEntity.LimitDataUse
+      case 'SWAP_EMAIL':
+        return ActionIntentEntity.SwapEmail
+      case 'SWAP_PHONE':
+        return ActionIntentEntity.SwapPhone
+      case 'SWAP_VIRTUAL_CARD':
+        return ActionIntentEntity.SwapVirtualCard
+      case 'SAVE_IN_PASSWORD':
+        return ActionIntentEntity.SaveInPassword
       default:
         return ActionIntentEntity.Other
     }
@@ -64,6 +88,14 @@ export class ActionIntentTransformer {
         return 'DELETE_MY_DATA'
       case ActionIntentEntity.LimitDataUse:
         return 'LIMIT_DATA_USE'
+      case ActionIntentEntity.SwapEmail:
+        return 'SWAP_EMAIL'
+      case ActionIntentEntity.SwapPhone:
+        return 'SWAP_PHONE'
+      case ActionIntentEntity.SwapVirtualCard:
+        return 'SWAP_VIRTUAL_CARD'
+      case ActionIntentEntity.SaveInPassword:
+        return 'SAVE_IN_PASSWORD'
       case ActionIntentEntity.Other:
         return 'OTHER'
     }

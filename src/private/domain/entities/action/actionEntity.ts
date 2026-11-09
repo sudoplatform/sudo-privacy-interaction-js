@@ -16,6 +16,16 @@
  * @property AccessMyData Data subject access / portability request.
  * @property DeleteMyData Account deletion / data erasure.
  * @property LimitDataUse Opt out of sale / tracking, manage consent.
+ * @property SwapEmail The user has replaced the account's email with a private
+ *  email. Always available for an email presence; self-reported.
+ * @property SwapPhone The user has replaced the account's phone number with a
+ *  private number. Offered only when a signal indicates the data holder holds
+ *  the user's phone number.
+ * @property SwapVirtualCard The user has replaced the account's payment card
+ *  with a virtual card. Offered only when the data holder is identified as
+ *  collecting credit card data.
+ * @property SaveInPassword The user has saved this account in a password
+ *  manager. Offered only when the data holder supports account creation.
  * @property Other Anything unmapped; carries additionalInfo.
  *
  * @enum
@@ -25,6 +35,10 @@ export enum ActionIntentEntity {
   AccessMyData = 'ACCESS_MY_DATA',
   DeleteMyData = 'DELETE_MY_DATA',
   LimitDataUse = 'LIMIT_DATA_USE',
+  SwapEmail = 'SWAP_EMAIL',
+  SwapPhone = 'SWAP_PHONE',
+  SwapVirtualCard = 'SWAP_VIRTUAL_CARD',
+  SaveInPassword = 'SAVE_IN_PASSWORD',
   Other = 'OTHER',
 }
 
@@ -185,6 +199,9 @@ export interface ActionEntity {
  * @property {ActionOriginEntity} origin Which source contributed this action.
  * @property {string} title Short presentation hint for the action's title.
  * @property {string} description Short presentation hint describing the action.
+ * @property {ActionStatusEntity} status Lifecycle status of the most recent,
+ *  non-superseded persisted action for this intent on the data holder.
+ *  Undefined when the user has never initiated this action.
  */
 export interface AvailableActionEntity {
   intent: ActionIntentEntity
@@ -193,4 +210,5 @@ export interface AvailableActionEntity {
   origin: ActionOriginEntity
   title?: string
   description?: string
+  status?: ActionStatusEntity
 }

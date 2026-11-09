@@ -15,6 +15,16 @@
  * @property ACCESS_MY_DATA Data subject access / portability request.
  * @property DELETE_MY_DATA Account deletion / data erasure.
  * @property LIMIT_DATA_USE Opt out of sale / tracking, manage consent.
+ * @property SWAP_EMAIL The user has replaced the account's email with a private
+ *  email. Always available for an email presence; self-reported.
+ * @property SWAP_PHONE The user has replaced the account's phone number with a
+ *  private number. Offered only when a signal indicates the data holder holds
+ *  the user's phone number.
+ * @property SWAP_VIRTUAL_CARD The user has replaced the account's payment card
+ *  with a virtual card. Offered only when the data holder is identified as
+ *  collecting credit card data.
+ * @property SAVE_IN_PASSWORD The user has saved this account in a password
+ *  manager. Offered only when the data holder supports account creation.
  * @property OTHER Anything unmapped; carries additionalInfo.
  *
  * @enum
@@ -24,6 +34,10 @@ export enum ActionIntent {
   AccessMyData = 'ACCESS_MY_DATA',
   DeleteMyData = 'DELETE_MY_DATA',
   LimitDataUse = 'LIMIT_DATA_USE',
+  SwapEmail = 'SWAP_EMAIL',
+  SwapPhone = 'SWAP_PHONE',
+  SwapVirtualCard = 'SWAP_VIRTUAL_CARD',
+  SaveInPassword = 'SAVE_IN_PASSWORD',
   Other = 'OTHER',
 }
 
@@ -183,6 +197,10 @@ export interface Action {
  * @property {ActionOrigin} origin Which source contributed this action.
  * @property {string} title Short presentation hint for the action's title.
  * @property {string} description Short presentation hint describing the action.
+ * @property {ActionStatus} status Lifecycle status of the most recent,
+ *  non-superseded persisted action for this intent on the data holder.
+ *  Undefined when the user has never initiated this action, distinguishing
+ *  "not yet started" from "in progress" or "completed".
  */
 export interface AvailableAction {
   intent: ActionIntent
@@ -191,4 +209,5 @@ export interface AvailableAction {
   origin: ActionOrigin
   title?: string
   description?: string
+  status?: ActionStatus
 }

@@ -231,5 +231,6 @@ export class GraphQLDataFactory {
     origin: 'DISCOVERY',
     title: 'Unsubscribe',
     description: 'Opt out of marketing communications.',
+    status: 'IN_PROGRESS',
   }
 }

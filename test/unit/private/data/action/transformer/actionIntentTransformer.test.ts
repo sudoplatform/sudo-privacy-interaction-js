@@ -13,12 +13,16 @@ describe('ActionIntentTransformer Test Suite', () => {
 
   describe('fromEntityToAPI', () => {
     it.each`
-      input                              | expected
-      ${ActionIntentEntity.StopContact}  | ${ActionIntent.StopContact}
-      ${ActionIntentEntity.AccessMyData} | ${ActionIntent.AccessMyData}
-      ${ActionIntentEntity.DeleteMyData} | ${ActionIntent.DeleteMyData}
-      ${ActionIntentEntity.LimitDataUse} | ${ActionIntent.LimitDataUse}
-      ${ActionIntentEntity.Other}        | ${ActionIntent.Other}
+      input                                 | expected
+      ${ActionIntentEntity.StopContact}     | ${ActionIntent.StopContact}
+      ${ActionIntentEntity.AccessMyData}    | ${ActionIntent.AccessMyData}
+      ${ActionIntentEntity.DeleteMyData}    | ${ActionIntent.DeleteMyData}
+      ${ActionIntentEntity.LimitDataUse}    | ${ActionIntent.LimitDataUse}
+      ${ActionIntentEntity.SwapEmail}       | ${ActionIntent.SwapEmail}
+      ${ActionIntentEntity.SwapPhone}       | ${ActionIntent.SwapPhone}
+      ${ActionIntentEntity.SwapVirtualCard} | ${ActionIntent.SwapVirtualCard}
+      ${ActionIntentEntity.SaveInPassword}  | ${ActionIntent.SaveInPassword}
+      ${ActionIntentEntity.Other}           | ${ActionIntent.Other}
     `(
       'transforms from entity $input to API $expected successfully',
       ({ input, expected }) => {
@@ -29,12 +33,16 @@ describe('ActionIntentTransformer Test Suite', () => {
 
   describe('fromAPIToEntity', () => {
     it.each`
-      input                        | expected
-      ${ActionIntent.StopContact}  | ${ActionIntentEntity.StopContact}
-      ${ActionIntent.AccessMyData} | ${ActionIntentEntity.AccessMyData}
-      ${ActionIntent.DeleteMyData} | ${ActionIntentEntity.DeleteMyData}
-      ${ActionIntent.LimitDataUse} | ${ActionIntentEntity.LimitDataUse}
-      ${ActionIntent.Other}        | ${ActionIntentEntity.Other}
+      input                           | expected
+      ${ActionIntent.StopContact}     | ${ActionIntentEntity.StopContact}
+      ${ActionIntent.AccessMyData}    | ${ActionIntentEntity.AccessMyData}
+      ${ActionIntent.DeleteMyData}    | ${ActionIntentEntity.DeleteMyData}
+      ${ActionIntent.LimitDataUse}    | ${ActionIntentEntity.LimitDataUse}
+      ${ActionIntent.SwapEmail}       | ${ActionIntentEntity.SwapEmail}
+      ${ActionIntent.SwapPhone}       | ${ActionIntentEntity.SwapPhone}
+      ${ActionIntent.SwapVirtualCard} | ${ActionIntentEntity.SwapVirtualCard}
+      ${ActionIntent.SaveInPassword}  | ${ActionIntentEntity.SaveInPassword}
+      ${ActionIntent.Other}           | ${ActionIntentEntity.Other}
     `(
       'transforms from API $input to entity $expected successfully',
       ({ input, expected }) => {
@@ -45,12 +53,16 @@ describe('ActionIntentTransformer Test Suite', () => {
 
   describe('fromGraphQLToEntity', () => {
     it.each`
-      input               | expected
-      ${'STOP_CONTACT'}   | ${ActionIntentEntity.StopContact}
-      ${'ACCESS_MY_DATA'} | ${ActionIntentEntity.AccessMyData}
-      ${'DELETE_MY_DATA'} | ${ActionIntentEntity.DeleteMyData}
-      ${'LIMIT_DATA_USE'} | ${ActionIntentEntity.LimitDataUse}
-      ${'OTHER'}          | ${ActionIntentEntity.Other}
+      input                  | expected
+      ${'STOP_CONTACT'}      | ${ActionIntentEntity.StopContact}
+      ${'ACCESS_MY_DATA'}    | ${ActionIntentEntity.AccessMyData}
+      ${'DELETE_MY_DATA'}    | ${ActionIntentEntity.DeleteMyData}
+      ${'LIMIT_DATA_USE'}    | ${ActionIntentEntity.LimitDataUse}
+      ${'SWAP_EMAIL'}        | ${ActionIntentEntity.SwapEmail}
+      ${'SWAP_PHONE'}        | ${ActionIntentEntity.SwapPhone}
+      ${'SWAP_VIRTUAL_CARD'} | ${ActionIntentEntity.SwapVirtualCard}
+      ${'SAVE_IN_PASSWORD'}  | ${ActionIntentEntity.SaveInPassword}
+      ${'OTHER'}             | ${ActionIntentEntity.Other}
     `(
       'transforms from graphQL $input to entity $expected successfully',
       ({ input, expected }) => {
@@ -67,12 +79,16 @@ describe('ActionIntentTransformer Test Suite', () => {
 
   describe('fromEntityToGraphQL', () => {
     it.each`
-      input                              | expected
-      ${ActionIntentEntity.StopContact}  | ${'STOP_CONTACT'}
-      ${ActionIntentEntity.AccessMyData} | ${'ACCESS_MY_DATA'}
-      ${ActionIntentEntity.DeleteMyData} | ${'DELETE_MY_DATA'}
-      ${ActionIntentEntity.LimitDataUse} | ${'LIMIT_DATA_USE'}
-      ${ActionIntentEntity.Other}        | ${'OTHER'}
+      input                                 | expected
+      ${ActionIntentEntity.StopContact}     | ${'STOP_CONTACT'}
+      ${ActionIntentEntity.AccessMyData}    | ${'ACCESS_MY_DATA'}
+      ${ActionIntentEntity.DeleteMyData}    | ${'DELETE_MY_DATA'}
+      ${ActionIntentEntity.LimitDataUse}    | ${'LIMIT_DATA_USE'}
+      ${ActionIntentEntity.SwapEmail}       | ${'SWAP_EMAIL'}
+      ${ActionIntentEntity.SwapPhone}       | ${'SWAP_PHONE'}
+      ${ActionIntentEntity.SwapVirtualCard} | ${'SWAP_VIRTUAL_CARD'}
+      ${ActionIntentEntity.SaveInPassword}  | ${'SAVE_IN_PASSWORD'}
+      ${ActionIntentEntity.Other}           | ${'OTHER'}
     `(
       'transforms from entity $input to graphQL $expected successfully',
       ({ input, expected }) => {

@@ -115,6 +115,11 @@
       "until": 1795224255,
       "untilISO": "2026-11-21T01:24:15Z",
       "reason": "markdown-it fix too new"
+    },
+    "1244623": {
+      "until": 1796479200,
+      "untilISO": "2026-12-06T00:00:00Z",
+      "reason": "minimatch 10.2.6 pulled in by typedoc (latest stable 0.28.20); typedoc requires minimatch 10.x and is incompatible with 11.x. Dev/build-time docs tool only, not shipped at runtime"
     }
   }
 }

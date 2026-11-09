@@ -13,9 +13,6 @@ import * as fs from 'fs'
  * preload / clean up test emails so the discovery analysis pipeline can be tested.
  */
 
-const ADMIN_API_URL =
-  'https://r42u27ucpre5fjtc72eb56gs3i.appsync-api.us-east-1.amazonaws.com/graphql'
-
 export interface CreateTestEmailInput {
   owner: string
   emailAddress: string
@@ -80,15 +77,17 @@ export class TestAdminClient {
   private readonly apiUrl: string
   private readonly apiKey: string
 
-  constructor() {
+  constructor(apiUrl: string) {
     const adminApiKeyFile = 'config/admin_api_key.secret'
     let adminApiKey: string | undefined
-    if (fs.existsSync(adminApiKeyFile)) {
+    if (process.env.PIMS_ADMIN_API_KEY?.trim()) {
+      adminApiKey = process.env.PIMS_ADMIN_API_KEY.trim()
+    } else if (fs.existsSync(adminApiKeyFile)) {
       adminApiKey = fs.readFileSync(adminApiKeyFile).toString().trim()
     } else {
       adminApiKey = process.env.ADMIN_API_KEY?.trim()
     }
-    this.apiUrl = ADMIN_API_URL
+    this.apiUrl = apiUrl
     this.apiKey = adminApiKey!
   }
 

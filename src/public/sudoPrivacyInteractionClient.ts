@@ -13,6 +13,7 @@ import {
   GetOrganizationAnalysisInput,
   InitiateActionInput,
   ListAnalysisResultsInput,
+  ListActionsForDataHolderInput,
   ListAvailableActionsInput,
   ListDataHolderScanSummariesInput,
   ListDataHoldersInput,
@@ -80,6 +81,18 @@ export interface SudoPrivacyInteractionClient {
   rescanVirtualPresence(
     input: RescanVirtualPresenceInput,
   ): Promise<VirtualPresence>
+
+  /**
+   * Validate a virtual presence's provider grant on demand and return its
+   * reconciled state. If the provider confirms the grant has been revoked (e.g.
+   * the user removed access in their provider account), the presence transitions
+   * to `NeedsReauth`; otherwise its state is returned unchanged. Use before
+   * gating access on a current `Connected` state.
+   *
+   * @param {string} id The unique identifier of the virtual presence to refresh.
+   * @returns {VirtualPresence} The virtual presence with its reconciled state.
+   */
+  refreshVirtualPresenceState(id: string): Promise<VirtualPresence>
 
   /**
    * List all virtual presences for the signed in user.
@@ -275,6 +288,20 @@ export interface SudoPrivacyInteractionClient {
   listAvailableActions(
     input: ListAvailableActionsInput,
   ): Promise<ListOutput<AvailableAction>>
+
+  /**
+   * List the persisted action history for a data holder. Returns every action
+   * that has been initiated against the data holder (all intents, all statuses,
+   * every attempt), ordered newest-first. This is the executed-action history,
+   * distinct from `listAvailableActions`, which returns the derived set of
+   * actions a user could take.
+   *
+   * @param {ListActionsForDataHolderInput} input Parameters used to list the action history.
+   * @returns {ListOutput<Action>} A list of actions matching the search criteria.
+   */
+  listActionsForDataHolder(
+    input: ListActionsForDataHolderInput,
+  ): Promise<ListOutput<Action>>
 
   /**
    * Subscribe to action status events. Emitted each time an action's status changes.
