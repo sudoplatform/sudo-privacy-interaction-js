@@ -303,6 +303,7 @@ export interface CategorySignals {
  *  @deprecated Use {@link CapabilitySignals.supportsOptOutOfSale} instead. Populated from `supportsOptOutOfSale`.
  * @property {SignalValue} usesCookiesOrTracking Whether the organization uses cookies or tracking.
  * @property {SignalValue} supportsTwoFactorAuth Whether the organization supports two-factor auth for logins.
+ * @property {SignalValue} supportsPasskeys Whether the organization supports passkeys for logins.
  */
 export interface CapabilitySignals {
   supportsAccountCreation: SignalValue
@@ -318,6 +319,7 @@ export interface CapabilitySignals {
   sellsPersonalInformation: SignalValue
   usesCookiesOrTracking: SignalValue
   supportsTwoFactorAuth: SignalValue
+  supportsPasskeys: SignalValue
 }
 
 /**

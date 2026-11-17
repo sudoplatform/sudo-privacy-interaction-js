@@ -29,7 +29,12 @@ export interface ConnectVirtualPresenceWithAuthCodeInput {
  * @property {string} refreshToken The refresh token value.
  * @property {string} providerIdentity The identity associated with the provider.
  * @property {string[]} scopes Optional OAuth scopes associated with the token.
- * @property {number} expiresInEpochMs Optional expiration time in milliseconds since epoch.
+ * @property {number} expiresAtEpochMs Optional absolute expiry of the credential in milliseconds
+ *  since epoch. Takes precedence over `expiresInEpochMs` when both are provided. Defaults to one
+ *  year after the request when neither is provided.
+ * @property {number} expiresInEpochMs Optional relative expiry: the number of milliseconds after
+ *  the request at which the credential expires.
+ *  @deprecated Use {@link ConnectVirtualPresenceWithRefreshTokenInput.expiresAtEpochMs} instead.
  * @property {RelationshipProvider} relationshipProvider The relationship provider
  *  to associate with the connection.
  */
@@ -37,6 +42,10 @@ export interface ConnectVirtualPresenceWithRefreshTokenInput {
   refreshToken: string
   providerIdentity: string
   scopes?: string[]
+  expiresAtEpochMs?: number
+  /**
+   * @deprecated Use {@link ConnectVirtualPresenceWithRefreshTokenInput.expiresAtEpochMs} instead.
+   */
   expiresInEpochMs?: number
   relationshipProvider?: RelationshipProvider
 }

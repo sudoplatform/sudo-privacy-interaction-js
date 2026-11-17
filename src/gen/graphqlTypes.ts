@@ -23,6 +23,9 @@ export type ActionIntent =
   | 'SWAP_EMAIL'
   | 'SWAP_PHONE'
   | 'SWAP_VIRTUAL_CARD'
+  | 'USE_PASSKEY'
+  | 'USE_STRONG_PASSWORD'
+  | 'USE_TWO_FACTOR_AUTH'
   | '%future added value'
 
 export type ActionOrigin =
@@ -152,7 +155,7 @@ export type OrganizationCategory =
 export type ProviderType = 'EMAIL' | '%future added value'
 
 export type RefreshTokenInput = {
-  expiresInEpochMs?: number | null | undefined
+  expiresAtEpochMs?: number | null | undefined
   providerIdentity: string
   refreshToken: string
   scopes?: Array<string> | null | undefined
@@ -269,6 +272,7 @@ export type AnalysisResultDataFieldsFragment = {
     supportsOptOutOfSale: SignalValue
     usesCookiesOrTracking: SignalValue
     supportsTwoFactorAuth: SignalValue
+    supportsPasskeys: SignalValue
   }
   riskIndicators: {
     dataCollectionBreadth: number
@@ -335,6 +339,7 @@ export type AnalysisResultFieldsFragment = {
       supportsOptOutOfSale: SignalValue
       usesCookiesOrTracking: SignalValue
       supportsTwoFactorAuth: SignalValue
+      supportsPasskeys: SignalValue
     }
     riskIndicators: {
       dataCollectionBreadth: number
@@ -361,7 +366,8 @@ export type DataHolderFieldsFragment = {
   name: string
   protectionState: DataHolderProtectionState
   complianceConcern: boolean
-  mostRecentInteractionEpochMs: number
+  mostRecentInboundContactEpochMs: number | null
+  firstInboundContactEpochMs: number | null
   owner: string
   version: number
   createdAtEpochMs: number
@@ -431,6 +437,7 @@ export type OrganizationAnalysisFieldsFragment = {
       supportsOptOutOfSale: SignalValue
       usesCookiesOrTracking: SignalValue
       supportsTwoFactorAuth: SignalValue
+      supportsPasskeys: SignalValue
     }
     riskIndicators: {
       dataCollectionBreadth: number
@@ -657,7 +664,8 @@ export type ArchiveDataHolderMutation = {
     name: string
     protectionState: DataHolderProtectionState
     complianceConcern: boolean
-    mostRecentInteractionEpochMs: number
+    mostRecentInboundContactEpochMs: number | null
+    firstInboundContactEpochMs: number | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -677,7 +685,8 @@ export type UnarchiveDataHolderMutation = {
     name: string
     protectionState: DataHolderProtectionState
     complianceConcern: boolean
-    mostRecentInteractionEpochMs: number
+    mostRecentInboundContactEpochMs: number | null
+    firstInboundContactEpochMs: number | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -734,7 +743,8 @@ export type GetDataHolderQuery = {
     name: string
     protectionState: DataHolderProtectionState
     complianceConcern: boolean
-    mostRecentInteractionEpochMs: number
+    mostRecentInboundContactEpochMs: number | null
+    firstInboundContactEpochMs: number | null
     owner: string
     version: number
     createdAtEpochMs: number
@@ -758,7 +768,8 @@ export type ListDataHoldersQuery = {
       name: string
       protectionState: DataHolderProtectionState
       complianceConcern: boolean
-      mostRecentInteractionEpochMs: number
+      mostRecentInboundContactEpochMs: number | null
+      firstInboundContactEpochMs: number | null
       owner: string
       version: number
       createdAtEpochMs: number
@@ -820,6 +831,7 @@ export type GetAnalysisResultQuery = {
         supportsOptOutOfSale: SignalValue
         usesCookiesOrTracking: SignalValue
         supportsTwoFactorAuth: SignalValue
+        supportsPasskeys: SignalValue
       }
       riskIndicators: {
         dataCollectionBreadth: number
@@ -894,6 +906,7 @@ export type GetOrganizationAnalysisQuery = {
         supportsOptOutOfSale: SignalValue
         usesCookiesOrTracking: SignalValue
         supportsTwoFactorAuth: SignalValue
+        supportsPasskeys: SignalValue
       }
       riskIndicators: {
         dataCollectionBreadth: number
@@ -971,6 +984,7 @@ export type ListAnalysisResultsQuery = {
           supportsOptOutOfSale: SignalValue
           usesCookiesOrTracking: SignalValue
           supportsTwoFactorAuth: SignalValue
+          supportsPasskeys: SignalValue
         }
         riskIndicators: {
           dataCollectionBreadth: number
@@ -1154,7 +1168,8 @@ export type OnDataHoldersUpdateSubscription = {
       name: string
       protectionState: DataHolderProtectionState
       complianceConcern: boolean
-      mostRecentInteractionEpochMs: number
+      mostRecentInboundContactEpochMs: number | null
+      firstInboundContactEpochMs: number | null
       owner: string
       version: number
       createdAtEpochMs: number
@@ -1479,6 +1494,10 @@ export const AnalysisResultDataFieldsFragmentDoc = {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
                 },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
+                },
               ],
             },
           },
@@ -1741,6 +1760,10 @@ export const AnalysisResultFieldsFragmentDoc = {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
                 },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
+                },
               ],
             },
           },
@@ -1824,7 +1847,11 @@ export const DataHolderFieldsFragmentDoc = {
           { kind: 'Field', name: { kind: 'Name', value: 'complianceConcern' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'mostRecentInteractionEpochMs' },
+            name: { kind: 'Name', value: 'mostRecentInboundContactEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'firstInboundContactEpochMs' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -2076,6 +2103,10 @@ export const OrganizationAnalysisFieldsFragmentDoc = {
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
                 },
               ],
             },
@@ -2970,7 +3001,11 @@ export const ArchiveDataHolderDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'complianceConcern' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'mostRecentInteractionEpochMs' },
+            name: { kind: 'Name', value: 'mostRecentInboundContactEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'firstInboundContactEpochMs' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -3048,7 +3083,11 @@ export const UnarchiveDataHolderDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'complianceConcern' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'mostRecentInteractionEpochMs' },
+            name: { kind: 'Name', value: 'mostRecentInboundContactEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'firstInboundContactEpochMs' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -3267,7 +3306,11 @@ export const GetDataHolderDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'complianceConcern' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'mostRecentInteractionEpochMs' },
+            name: { kind: 'Name', value: 'mostRecentInboundContactEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'firstInboundContactEpochMs' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -3387,7 +3430,11 @@ export const ListDataHoldersDocument = {
           { kind: 'Field', name: { kind: 'Name', value: 'complianceConcern' } },
           {
             kind: 'Field',
-            name: { kind: 'Name', value: 'mostRecentInteractionEpochMs' },
+            name: { kind: 'Name', value: 'mostRecentInboundContactEpochMs' },
+          },
+          {
+            kind: 'Field',
+            name: { kind: 'Name', value: 'firstInboundContactEpochMs' },
           },
           { kind: 'Field', name: { kind: 'Name', value: 'owner' } },
           { kind: 'Field', name: { kind: 'Name', value: 'version' } },
@@ -3601,6 +3648,10 @@ export const GetAnalysisResultDocument = {
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
                 },
               ],
             },
@@ -3947,6 +3998,10 @@ export const GetOrganizationAnalysisDocument = {
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
                 },
               ],
             },
@@ -4296,6 +4351,10 @@ export const ListAnalysisResultsDocument = {
                 {
                   kind: 'Field',
                   name: { kind: 'Name', value: 'supportsTwoFactorAuth' },
+                },
+                {
+                  kind: 'Field',
+                  name: { kind: 'Name', value: 'supportsPasskeys' },
                 },
               ],
             },
@@ -5132,7 +5191,14 @@ export const OnDataHoldersUpdateDocument = {
                         kind: 'Field',
                         name: {
                           kind: 'Name',
-                          value: 'mostRecentInteractionEpochMs',
+                          value: 'mostRecentInboundContactEpochMs',
+                        },
+                      },
+                      {
+                        kind: 'Field',
+                        name: {
+                          kind: 'Name',
+                          value: 'firstInboundContactEpochMs',
                         },
                       },
                       { kind: 'Field', name: { kind: 'Name', value: 'owner' } },

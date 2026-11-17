@@ -13,6 +13,11 @@ export class DataHolderTransformer {
   fromGraphQLToEntity(data: DataHolderGraphQL): DataHolderEntity {
     const dataHolderProtectionStateTransformer =
       new DataHolderProtectionStateTransformer()
+    const mostRecentInboundContactAt = new Date(
+      data.mostRecentInboundContactEpochMs ??
+        data.firstInboundContactEpochMs ??
+        data.createdAtEpochMs,
+    )
     return {
       id: data.id,
       virtualPresenceId: data.virtualPresenceId,
@@ -22,7 +27,11 @@ export class DataHolderTransformer {
         data.protectionState,
       ),
       complianceConcern: data.complianceConcern,
-      mostRecentInteractionAt: new Date(data.mostRecentInteractionEpochMs),
+      mostRecentInteractionAt: mostRecentInboundContactAt,
+      mostRecentInboundContactAt,
+      firstInboundContactAt: new Date(
+        data.firstInboundContactEpochMs ?? data.createdAtEpochMs,
+      ),
       owner: data.owner,
       version: data.version,
       createdAt: new Date(data.createdAtEpochMs),
@@ -43,6 +52,8 @@ export class DataHolderTransformer {
       ),
       complianceConcern: entity.complianceConcern,
       mostRecentInteractionAt: entity.mostRecentInteractionAt,
+      mostRecentInboundContactAt: entity.mostRecentInboundContactAt,
+      firstInboundContactAt: entity.firstInboundContactAt,
       owner: entity.owner,
       version: entity.version,
       createdAt: entity.createdAt,

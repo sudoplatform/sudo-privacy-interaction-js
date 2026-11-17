@@ -198,6 +198,7 @@ export class DefaultSudoPrivacyInteractionClient implements SudoPrivacyInteracti
       refreshToken: input.refreshToken,
       providerIdentity: input.providerIdentity,
       scopes: input.scopes,
+      expiresAtEpochMs: input.expiresAtEpochMs,
       expiresInEpochMs: input.expiresInEpochMs,
       relationshipProvider: input.relationshipProvider
         ? this.relationshipProviderTransformer.fromAPIToEntity(

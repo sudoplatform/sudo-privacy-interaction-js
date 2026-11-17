@@ -59,6 +59,9 @@ export type ActionIntent =
   | 'SWAP_EMAIL'
   | 'SWAP_PHONE'
   | 'SWAP_VIRTUAL_CARD'
+  | 'USE_PASSKEY'
+  | 'USE_STRONG_PASSWORD'
+  | 'USE_TWO_FACTOR_AUTH'
   | '%future added value'
 
 export type ActionOrigin =
@@ -173,6 +176,7 @@ export type CapabilitySignals = {
   supportsDataDeletionRequests: SignalValue
   supportsDataExport: SignalValue
   supportsOptOutOfSale: SignalValue
+  supportsPasskeys: SignalValue
   supportsSubscriptions: SignalValue
   supportsTwoFactorAuth: SignalValue
   usesCookiesOrTracking: SignalValue
@@ -221,8 +225,9 @@ export type DataHolder = {
   complianceConcern: Scalars['Boolean']['output']
   createdAtEpochMs: Scalars['Float']['output']
   domainName: Scalars['String']['output']
+  firstInboundContactEpochMs?: Maybe<Scalars['Float']['output']>
   id: Scalars['ID']['output']
-  mostRecentInteractionEpochMs: Scalars['Float']['output']
+  mostRecentInboundContactEpochMs?: Maybe<Scalars['Float']['output']>
   name: Scalars['String']['output']
   owner: Scalars['ID']['output']
   protectionState: DataHolderProtectionState
@@ -276,8 +281,9 @@ export type DataHolderUpdateItem = {
   complianceConcern: Scalars['Boolean']['output']
   createdAtEpochMs: Scalars['Float']['output']
   domainName: Scalars['String']['output']
+  firstInboundContactEpochMs?: Maybe<Scalars['Float']['output']>
   id: Scalars['ID']['output']
-  mostRecentInteractionEpochMs: Scalars['Float']['output']
+  mostRecentInboundContactEpochMs?: Maybe<Scalars['Float']['output']>
   name: Scalars['String']['output']
   owner: Scalars['ID']['output']
   protectionState: DataHolderProtectionState
@@ -574,7 +580,7 @@ export type QueryListVirtualPresencesArgs = {
 }
 
 export type RefreshTokenInput = {
-  expiresInEpochMs?: InputMaybe<Scalars['Float']['input']>
+  expiresAtEpochMs?: InputMaybe<Scalars['Float']['input']>
   providerIdentity: Scalars['String']['input']
   refreshToken: Scalars['String']['input']
   scopes?: InputMaybe<Array<Scalars['String']['input']>>

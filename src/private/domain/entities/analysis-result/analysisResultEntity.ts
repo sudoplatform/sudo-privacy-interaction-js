@@ -273,6 +273,7 @@ export interface CategorySignalsEntity {
  * @property {SignalValueEntity} supportsOptOutOfSale Whether the organization exposes an opt-out-of-sale control to users.
  * @property {SignalValueEntity} usesCookiesOrTracking Whether the organization uses cookies or tracking.
  * @property {SignalValueEntity} supportsTwoFactorAuth Whether the organization supports two-factor auth for logins.
+ * @property {SignalValueEntity} supportsPasskeys Whether the organization supports passkeys for logins.
  */
 export interface CapabilitySignalsEntity {
   supportsAccountCreation: SignalValueEntity
@@ -283,6 +284,7 @@ export interface CapabilitySignalsEntity {
   supportsOptOutOfSale: SignalValueEntity
   usesCookiesOrTracking: SignalValueEntity
   supportsTwoFactorAuth: SignalValueEntity
+  supportsPasskeys: SignalValueEntity
 }
 
 /**

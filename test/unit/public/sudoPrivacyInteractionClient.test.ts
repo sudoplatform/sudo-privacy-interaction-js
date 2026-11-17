@@ -673,6 +673,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
         refreshToken: 'test-refresh-token',
         providerIdentity: 'test@example.com',
         scopes: ['emailAddress'],
+        expiresAtEpochMs: undefined,
         expiresInEpochMs: undefined,
         relationshipProvider: undefined,
       })
@@ -693,6 +694,7 @@ describe('DefaultSudoPrivacyInteractionClient Test Suite', () => {
         refreshToken: 'test-refresh-token',
         providerIdentity: 'test@example.com',
         scopes: undefined,
+        expiresAtEpochMs: undefined,
         expiresInEpochMs: undefined,
         relationshipProvider: RelationshipProviderEntity.TestProvider,
       })

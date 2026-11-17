@@ -80,6 +80,8 @@ export class APIDataFactory {
     protectionState: DataHolderProtectionState.Monitored,
     complianceConcern: false,
     mostRecentInteractionAt: new Date(3.0),
+    mostRecentInboundContactAt: new Date(3.0),
+    firstInboundContactAt: new Date(2.0),
   }
 
   static readonly retentionInfo: RetentionInfo = {
@@ -123,6 +125,7 @@ export class APIDataFactory {
     sellsPersonalInformation: SignalValue.No,
     usesCookiesOrTracking: SignalValue.Yes,
     supportsTwoFactorAuth: SignalValue.Yes,
+    supportsPasskeys: SignalValue.Yes,
   }
 
   static readonly riskIndicators: RiskIndicators = {

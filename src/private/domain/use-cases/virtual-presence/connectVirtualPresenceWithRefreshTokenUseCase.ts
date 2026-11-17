@@ -18,6 +18,8 @@ interface ConnectVirtualPresenceWithRefreshTokenUseCaseInput {
   refreshToken: string
   providerIdentity: string
   scopes?: string[]
+  expiresAtEpochMs?: number
+  /** Relative expiry in milliseconds after the request. Converted to an absolute expiry. */
   expiresInEpochMs?: number
   relationshipProvider?: RelationshipProviderEntity
 }
@@ -43,7 +45,11 @@ export class ConnectVirtualPresenceWithRefreshTokenUseCase {
         refreshToken: input.refreshToken,
         providerIdentity: input.providerIdentity,
         scopes: input.scopes,
-        expiresInEpochMs: input.expiresInEpochMs,
+        expiresAtEpochMs:
+          input.expiresAtEpochMs ??
+          (input.expiresInEpochMs !== undefined
+            ? Date.now() + input.expiresInEpochMs
+            : undefined),
       },
       relationshipProvider: input.relationshipProvider,
     })

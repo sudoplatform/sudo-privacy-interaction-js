@@ -17,7 +17,10 @@
  * @property {string} name Display name of the data holder.
  * @property {DataHolderProtectionState} protectionState Current protection state.
  * @property {boolean} complianceConcern Whether there is a compliance concern.
- * @property {Date} mostRecentInteractionAt Date of the most recent interaction.
+ * @property {Date} mostRecentInteractionAt Date of the most recent inbound contact from the data holder.
+ *  @deprecated Use {@link DataHolder.mostRecentInboundContactAt} instead.
+ * @property {Date} mostRecentInboundContactAt Date of the most recent inbound contact from the data holder.
+ * @property {Date} firstInboundContactAt Date of the earliest observed contact from the data holder.
  * @property {number} version Version of this entity. Increments on update.
  * @property {Date} createdAt Date for when the data holder was created.
  * @property {Date} updatedAt Date for when the data holder was last updated.
@@ -33,7 +36,12 @@ export interface DataHolder {
   name: string
   protectionState: DataHolderProtectionState
   complianceConcern: boolean
+  /**
+   * @deprecated Use {@link DataHolder.mostRecentInboundContactAt} instead.
+   */
   mostRecentInteractionAt: Date
+  mostRecentInboundContactAt: Date
+  firstInboundContactAt: Date
   version: number
   createdAt: Date
   updatedAt: Date

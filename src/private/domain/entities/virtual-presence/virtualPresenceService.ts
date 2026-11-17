@@ -28,13 +28,13 @@ export interface AuthCodeInput {
  * @property {string} refreshToken The refresh token value.
  * @property {string} providerIdentity The identity associated with the provider.
  * @property {string[]} scopes Optional OAuth scopes associated with the token.
- * @property {number} expiresInEpochMs Optional expiration time in milliseconds since epoch.
+ * @property {number} expiresAtEpochMs Optional absolute expiry in milliseconds since epoch. Defaults to one year after the request.
  */
 export interface RefreshTokenInput {
   refreshToken: string
   providerIdentity: string
   scopes?: string[]
-  expiresInEpochMs?: number
+  expiresAtEpochMs?: number
 }
 
 /**

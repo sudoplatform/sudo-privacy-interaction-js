@@ -40,6 +40,7 @@ fragment AnalysisResultDataFields on AnalysisResultData {
     supportsOptOutOfSale
     usesCookiesOrTracking
     supportsTwoFactorAuth
+    supportsPasskeys
   }
   riskIndicators {
     dataCollectionBreadth

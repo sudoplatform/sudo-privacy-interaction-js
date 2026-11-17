@@ -44,12 +44,24 @@ describe('ConnectVirtualPresenceWithRefreshTokenUseCase Test Suite', () => {
         expiresInEpochMs: 1000000,
       }
 
-      const result = await instanceUnderTest.execute(refreshToken)
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date(5000))
+      let result
+      try {
+        result = await instanceUnderTest.execute(refreshToken)
+      } finally {
+        vi.useRealTimers()
+      }
 
       expect(result).toStrictEqual(EntityDataFactory.virtualPresence)
       const [inputArgs] = capture(mockVirtualPresenceService.connect).first()
       expect(inputArgs).toStrictEqual<typeof inputArgs>({
-        refreshToken,
+        refreshToken: {
+          refreshToken: 'test-refresh-token',
+          providerIdentity: 'test@example.com',
+          scopes: ['emailAddress'],
+          expiresAtEpochMs: 1005000,
+        },
         relationshipProvider: undefined,
       })
       verify(mockVirtualPresenceService.connect(anything())).once()
@@ -73,11 +85,27 @@ describe('ConnectVirtualPresenceWithRefreshTokenUseCase Test Suite', () => {
           refreshToken: 'test-refresh-token',
           providerIdentity: 'test@example.com',
           scopes: undefined,
-          expiresInEpochMs: undefined,
+          expiresAtEpochMs: undefined,
         },
         relationshipProvider: RelationshipProviderEntity.GmailProvider,
       })
       verify(mockVirtualPresenceService.connect(anything())).once()
+    })
+
+    it('prefers expiresAtEpochMs over expiresInEpochMs', async () => {
+      when(mockVirtualPresenceService.connect(anything())).thenResolve(
+        EntityDataFactory.virtualPresence,
+      )
+
+      await instanceUnderTest.execute({
+        refreshToken: 'test-refresh-token',
+        providerIdentity: 'test@example.com',
+        expiresAtEpochMs: 42,
+        expiresInEpochMs: 1000000,
+      })
+
+      const [inputArgs] = capture(mockVirtualPresenceService.connect).first()
+      expect(inputArgs.refreshToken?.expiresAtEpochMs).toBe(42)
     })
   })
 })

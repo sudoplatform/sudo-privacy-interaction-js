@@ -99,6 +99,8 @@ export class EntityDataFactory {
     protectionState: DataHolderProtectionStateEntity.Monitored,
     complianceConcern: false,
     mostRecentInteractionAt: new Date(3.0),
+    mostRecentInboundContactAt: new Date(3.0),
+    firstInboundContactAt: new Date(2.0),
   }
 
   static readonly retentionInfo: RetentionInfoEntity = {
@@ -141,6 +143,7 @@ export class EntityDataFactory {
     supportsOptOutOfSale: SignalValueEntity.No,
     usesCookiesOrTracking: SignalValueEntity.Yes,
     supportsTwoFactorAuth: SignalValueEntity.Yes,
+    supportsPasskeys: SignalValueEntity.Yes,
   }
 
   static readonly riskIndicators: RiskIndicatorsEntity = {

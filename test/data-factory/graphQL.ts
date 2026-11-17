@@ -69,7 +69,8 @@ export class GraphQLDataFactory {
     name: 'Foobar Corp',
     protectionState: 'MONITORED',
     complianceConcern: false,
-    mostRecentInteractionEpochMs: 3.0,
+    mostRecentInboundContactEpochMs: 3.0,
+    firstInboundContactEpochMs: 2.0,
   }
 
   static readonly retentionInfo: GraphQLRetentionInfo = {
@@ -112,6 +113,7 @@ export class GraphQLDataFactory {
     supportsOptOutOfSale: 'NO',
     usesCookiesOrTracking: 'YES',
     supportsTwoFactorAuth: 'YES',
+    supportsPasskeys: 'YES',
   }
 
   static readonly riskIndicators: GraphQLRiskIndicators = {

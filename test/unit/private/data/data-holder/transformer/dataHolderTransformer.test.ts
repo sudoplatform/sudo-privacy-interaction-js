@@ -18,6 +18,28 @@ describe('DataHolderTransformer Test Suite', () => {
         instanceUnderTest.fromGraphQLToEntity(GraphQLDataFactory.dataHolder),
       ).toStrictEqual(EntityDataFactory.dataHolder)
     })
+
+    it('falls back to the first inbound contact when the most recent is absent', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity({
+        ...GraphQLDataFactory.dataHolder,
+        mostRecentInboundContactEpochMs: null,
+      })
+      expect(result.mostRecentInboundContactAt).toStrictEqual(new Date(2.0))
+      expect(result.mostRecentInteractionAt).toStrictEqual(new Date(2.0))
+      expect(result.firstInboundContactAt).toStrictEqual(new Date(2.0))
+    })
+
+    it('falls back to the creation date when no inbound contact is recorded', () => {
+      const result = instanceUnderTest.fromGraphQLToEntity({
+        ...GraphQLDataFactory.dataHolder,
+        mostRecentInboundContactEpochMs: null,
+        firstInboundContactEpochMs: null,
+      })
+      const createdAt = new Date(GraphQLDataFactory.dataHolder.createdAtEpochMs)
+      expect(result.mostRecentInboundContactAt).toStrictEqual(createdAt)
+      expect(result.mostRecentInteractionAt).toStrictEqual(createdAt)
+      expect(result.firstInboundContactAt).toStrictEqual(createdAt)
+    })
   })
 
   describe('fromEntityToAPI', () => {

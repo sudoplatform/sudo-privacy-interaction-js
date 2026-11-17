@@ -16,7 +16,9 @@
  * @property {string} name Display name of the data holder.
  * @property {DataHolderProtectionStateEntity} protectionState Current protection state.
  * @property {boolean} complianceConcern Whether there is a compliance concern.
- * @property {Date} mostRecentInteractionAt Date of the most recent interaction.
+ * @property {Date} mostRecentInteractionAt Date of the most recent inbound contact from the data holder.
+ * @property {Date} mostRecentInboundContactAt Date of the most recent inbound contact from the data holder.
+ * @property {Date} firstInboundContactAt Date of the earliest observed contact from the data holder.
  * @property {string} owner Unique identifier of the user.
  * @property {number} version Version of this entity. Increments on update.
  * @property {Date} createdAt Date for when the data holder was created.
@@ -30,6 +32,8 @@ export interface DataHolderEntity {
   protectionState: DataHolderProtectionStateEntity
   complianceConcern: boolean
   mostRecentInteractionAt: Date
+  mostRecentInboundContactAt: Date
+  firstInboundContactAt: Date
   owner: string
   version: number
   createdAt: Date

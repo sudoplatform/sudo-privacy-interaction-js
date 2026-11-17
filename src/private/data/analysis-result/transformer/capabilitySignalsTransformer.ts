@@ -39,6 +39,9 @@ export class CapabilitySignalsTransformer {
       supportsTwoFactorAuth: this.signalValueTransformer.fromGraphQLToEntity(
         data.supportsTwoFactorAuth,
       ),
+      supportsPasskeys: this.signalValueTransformer.fromGraphQLToEntity(
+        data.supportsPasskeys,
+      ),
     }
   }
 
@@ -72,6 +75,9 @@ export class CapabilitySignalsTransformer {
       ),
       supportsTwoFactorAuth: this.signalValueTransformer.fromEntityToAPI(
         entity.supportsTwoFactorAuth,
+      ),
+      supportsPasskeys: this.signalValueTransformer.fromEntityToAPI(
+        entity.supportsPasskeys,
       ),
     }
   }
